@@ -4,6 +4,7 @@ const app = express();
 var path = require("path");
 const fetch = require('node-fetch');
 const Frame = require('./map/Frame');
+const StaticMapHttpRequest = require('./request/StaticMapHttpRequest');
 
 // shhhh!!
 const apiKey = fs.readFileSync('./hidden/key.txt', 'utf8').split("\n").shift();
@@ -45,3 +46,8 @@ const testFrame = new Frame(
   1500, 1500).calculateTileCenters();
 
 testFrame.forEach((row) => row.forEach((elem) => console.log(elem)));
+testFrame.forEach((row) => row.forEach((elem) => {
+  console.log(new StaticMapHttpRequest(
+    elem.lat, elem.lng, elem.height, elem.width, elem.zoom, apiKey
+  ).generate());
+}));
