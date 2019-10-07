@@ -39,7 +39,9 @@ const StanLong = -122.1678751;
 const CamLat = 37.2805374;
 const CamLong = -121.9905719;
 
-new Frame(
+const testFrame = new Frame(
   {lat: StanLat, lng: StanLong},
   {lat: CamLat, lng: CamLong},
   1500, 1500).calculateTileCenters();
+
+testFrame.forEach((row) => row.forEach((elem) => console.log(elem)));

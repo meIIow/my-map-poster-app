@@ -1,7 +1,7 @@
 /**
-  Convenience container for methods that convert between various map
-  coordinates or resolution levels.
-*/
+ *  Convenience container file for methods that convert between various map
+ *  coordinates or resolution levels.
+ */
 
 const TOTAL_DEGREES_LONGITUDE = 360;
 

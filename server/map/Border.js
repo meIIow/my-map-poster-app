@@ -1,6 +1,6 @@
 /**
-  Unit-agnostic class for organizing map border data.
-*/
+ *  Unit-agnostic class for organizing map border data.
+ */
 class Border {
   constructor(north, south, east, west) {
     this.north = north;

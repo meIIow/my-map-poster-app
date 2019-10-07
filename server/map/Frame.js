@@ -4,8 +4,8 @@ const Conversion = require('./Conversion');
 const MAX_PIXELS = 640; // Highest pixel dimensions that can be returned.
 
 /**
-  Generates detailed frame pixel window information within a geodetic range.
-*/
+ *  Generates detailed frame pixel window information within a geodetic range.
+ */
 class Frame {
   constructor(nw, se, minWidth, minHeight) {
     this.geodeticBorder = Border.fromLatLng(nw, se);
@@ -16,7 +16,7 @@ class Frame {
 
     // Determine minimum pixel to projection coordinate ratio.
     const minPixelDensity = Math.max(
-      minWidth / this.webProjectionBorder.width + Conversion.TOTAL_DEGREES_LONGITUDE,
+      minWidth / this.webProjectionBorder.width,
       minHeight / this.webProjectionBorder.height);
 
     this.zoom = Conversion.pixelDensityToZoom(minPixelDensity);
@@ -27,23 +27,30 @@ class Frame {
       projectionToPixel);
   }
 
-  // Logs tile centers (for now)
-  // TODO - separate this functionality
+  // Generates tile data array from this map frame.
+  // TODO: modify logic to fit total tile area to exact frome match
   calculateTileCenters() {
     const pixelToProjection = Conversion.createPixelToProjection(this.zoom);
 
-    const tileCountX = Math.ceil((this.pixelBorder.width) / MAX_PIXELS);
-    const tileCountY = Math.ceil((this.pixelBorder.height) / MAX_PIXELS);
+    const horizontalTileCount = Math.ceil((this.pixelBorder.width) / MAX_PIXELS);
+    const verticalTileCount = Math.ceil((this.pixelBorder.height) / MAX_PIXELS);
 
-    for (let x = 0; x < tileCountX; x ++) {
-      for (let y = 0; y < tileCountY; y++) {
-        let a = this.pixelBorder.west + MAX_PIXELS / 2 + x * MAX_PIXELS;
-        let b = this.pixelBorder.north + MAX_PIXELS / 2 + y * MAX_PIXELS;
-        console.log(x, y, a, b);
-        console.log(Conversion.webProjectionToLatitude(pixelToProjection(b)));
-        console.log(Conversion.webProjectionToLongitude(pixelToProjection(a)));
+    const tiles = [];
+    for (let row = 0; row < verticalTileCount; row ++) {
+      tiles.push([]);
+      for (let column = 0; column < horizontalTileCount; column ++) {
+        tiles[row].push({
+          lat: Conversion.webProjectionToLatitude(pixelToProjection(
+            this.pixelBorder.north + MAX_PIXELS / 2 + row * MAX_PIXELS)),
+          lng: Conversion.webProjectionToLongitude(pixelToProjection(
+            this.pixelBorder.west + MAX_PIXELS / 2 + column * MAX_PIXELS)),
+          width: MAX_PIXELS,
+          height: MAX_PIXELS,
+          zoom: this.zoom,
+        });
       }
     }
+    return tiles;
   }
 }
 
