@@ -28,10 +28,10 @@ app.use(express.static(path.join(__dirname, '../public')));
 const getMapTest = async (req, res, next) => {
   const url = "https://maps.googleapis.com/maps/api/staticmap?size=512x512&maptype=roadmap\&markers=size:mid%7Ccolor:red%7CSan+Francisco,CA%7COakland,CA%7CSan+Jose,CA&key=" + apiKey;
   console.log(url)
-  const x = await fetch(url);
-  const img = await x.buffer();
+  //const x = await fetch(url);
+  //const img = await x.buffer();
   const img2 = await testtest;
-  console.log(img);
+  //console.log(img);
   console.log(img2); // Step 3 - Send stitched images down and render on page
 
   res.contentType('png');
@@ -50,11 +50,11 @@ const CamLong = -121.9905719;
 const testFrame = new Frame(
   {lat: StanLat, lng: StanLong},
   {lat: CamLat, lng: CamLong},
-  1500, 1500).calculateTileCenters();
+  1500, 1500).asTiles();
 
 const generateUrl = (elem) => {
   return new StaticMapHttpRequest(
-    elem.lat, elem.lng, elem.height, elem.width, elem.zoom, apiKey
+    elem.latitude, elem.longitude, elem.height, elem.width, elem.zoom, apiKey
   ).generate();
 }
 
