@@ -50,7 +50,7 @@ const CamLong = -121.9905719;
 const testFrame = new Frame(
   {lat: StanLat, lng: StanLong},
   {lat: CamLat, lng: CamLong},
-  1500, 1500).asTiles();
+).asTiles(1500, 1500, true);
 
 const generateUrl = (elem) => {
   return new StaticMapHttpRequest(

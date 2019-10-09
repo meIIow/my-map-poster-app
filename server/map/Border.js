@@ -40,6 +40,14 @@ class Border {
   get height() {
     return this.north.distanceTo(this.south.value, false);
   }
+
+  round() {
+    this.north.value = Math.round(this.north.value);
+    this.south.value = Math.round(this.south.value);
+    this.east.value = Math.round(this.east.value);
+    this.west.value = Math.round(this.west.value);
+    return this;
+  }
 }
 
 module.exports = Border;
