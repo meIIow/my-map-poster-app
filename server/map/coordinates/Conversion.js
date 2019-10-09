@@ -2,7 +2,6 @@
 
 const PIXEL_MULTIPLIER = 256; // pixel range at zoom = 0
 
-
 // Converts from degrees (number) to radians (number).
 const degreesToRadians = (degrees) => degrees * Math.PI / 180;
 

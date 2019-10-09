@@ -1,4 +1,4 @@
-const { zoomToPixelSpace } = require('./Conversion');
+const { zoomToPixelSpace } = require('./conversion');
 
 /** Represents a Pixel coordinate value. */
 class Pixel {
