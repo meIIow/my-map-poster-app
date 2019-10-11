@@ -9,7 +9,7 @@ const degreesToRadians = (degrees) => degrees * Math.PI / 180;
 const radiansToDegrees = (radians) => radians * 180 / Math.PI;
 
 // Calculates the minimim zoom required to reach the minPixelDensity (number).
-const pixelDensityToZoom= (minPixelDensity) => {
+const pixelDensityToZoom = (minPixelDensity) => {
   return Math.max(0, Math.ceil(Math.log2(minPixelDensity / PIXEL_MULTIPLIER)));
 }
 

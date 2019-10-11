@@ -20,8 +20,8 @@ class Frame {
     // Each dimension must be divisible by its ratio in order to match it.
     let width = pixelBorder.width;
     let height = pixelBorder.height;
-    width += width % ratio.width;
-    height += height % ratio.height;
+    width += (ratio.width - width % ratio.width) % ratio.width;
+    height += (ratio.height - height % ratio.height) % ratio.height;
 
     // Stretch relatively smaller dimension to fit relatively larger one.
     width = Math.max(width, height * ratio.width / ratio.height);
