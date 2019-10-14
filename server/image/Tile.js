@@ -1,12 +1,13 @@
 const Latitude = require('../map/coordinates/Latitude');
 const Longitude = require('../map/coordinates/Longitude');
 const Pixel = require('../map/coordinates/Pixel');
+const Offset = require('./Offset');
 
 const MAX_PIXELS = 640; // Highest pixel dimensions that can be returned.
 
 /** A single image tile that can be retrieved via the Static Map API. */
 class Tile {
-  constructor(lat, lng, height, width, verticalOffset, horizontalOffset, zoom, overlap = 0) {
+  constructor(lat, lng, height, width, verticalOffset, horizontalOffset, zoom) {
     // Center coordinates
     this.latitude = lat;
     this.longitude = lng;
@@ -16,10 +17,35 @@ class Tile {
     // Offset in Pixels
     this.horizontalOffset = horizontalOffset;
     this.verticalOffset = verticalOffset;
-    this.overlap = overlap;
     this.zoom = zoom;
   }
 
+  // Generates a set of tiles for a given height and width offset.
+  static generateTileSet(heightOffset, widthOffset, zoom) {
+    const tiles = Array(heightOffset.count).fill(Array(widthOffset.count).fill());
+    return tiles.map((arr, row) => arr.map((undef, column) => {
+      const vertical = heightOffset.getData(row);
+      const horizontal = widthOffset.getData(column);
+      return new Tile(
+        Latitude.from(new Pixel(vertical.center, zoom).conversion).value,
+        Longitude.from(new Pixel(horizontal.center, zoom).conversion).value,
+        vertical.length,
+        horizontal.length,
+        vertical.offset,
+        horizontal.offset,
+        zoom);
+    }));
+  }
+
+  // Convenience wrapper to create a tile set that contains the desired section.
+  static generateLooseSet(north, west, height, width, zoom) {
+    const heightOffset = new Offset(north, height, MAX_PIXELS, 0, false);
+    const widthOffset = new Offset(west, width, MAX_PIXELS, 0, false);
+
+    return Tile.generateTileSet(heightOffset, widthOffset, zoom);
+  }
+
+  // Deprecated - Keep until testing added
   static generateSet(north, west, height, width, zoom) {
     const horizontalTileCount = Math.ceil(width / MAX_PIXELS);
     const verticalTileCount = Math.ceil(height / MAX_PIXELS);

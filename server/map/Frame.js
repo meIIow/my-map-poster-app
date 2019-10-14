@@ -68,7 +68,7 @@ class Frame {
       pixelBorder = Frame.stretchBorderToDimensionRatio(pixelBorder, ratio);
     }
 
-    return Tile.generateSet(
+    return Tile.generateLooseSet(
       pixelBorder.north.value,
       pixelBorder.west.value,
       pixelBorder.height,
