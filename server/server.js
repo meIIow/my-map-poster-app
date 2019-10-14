@@ -5,6 +5,7 @@ var path = require("path");
 const fetch = require('node-fetch');
 const { createCanvas, loadImage } = require('canvas');
 const Frame = require('./map/Frame');
+const { stitchTiles } = require('./image/combine');
 const StaticMapHttpRequest = require('./request/StaticMapHttpRequest');
 
 
@@ -25,6 +26,7 @@ server.listen(port, function() {
 let testtest;
 
 app.use(express.static(path.join(__dirname, '../public')));
+
 const getMapTest = async (req, res, next) => {
   const url = "https://maps.googleapis.com/maps/api/staticmap?size=512x512&maptype=roadmap\&markers=size:mid%7Ccolor:red%7CSan+Francisco,CA%7COakland,CA%7CSan+Jose,CA&key=" + apiKey;
   console.log(url)
@@ -38,8 +40,21 @@ const getMapTest = async (req, res, next) => {
   res.send(img2);
 }
 
+const getFullMapTest = async (req, res, next) => {
+  const testTiles = new Frame(
+    {lat: StanLat, lng: StanLong},
+    {lat: CamLat, lng: CamLong},
+  ).asTiles(1280, 1280, true);
+
+  const imgBuff = await stitchTiles(testTiles, apiKey);
+  console.log(imgBuff); // Step 3 - Send stitched images down and render on page
+
+  res.contentType('png');
+  res.send(imgBuff);
+}
+
 // Serve photo
-app.get('/test', getMapTest);
+app.get('/test', getFullMapTest);
 
 const StanLat = 37.4317565;
 const StanLong = -122.1678751;

@@ -2,6 +2,7 @@ const Latitude = require('../map/coordinates/Latitude');
 const Longitude = require('../map/coordinates/Longitude');
 const Pixel = require('../map/coordinates/Pixel');
 const Offset = require('./Offset');
+const StaticMapHttpRequest = require('../request/StaticMapHttpRequest');
 
 const MAX_PIXELS = 640; // Highest pixel dimensions that can be returned.
 
@@ -18,6 +19,12 @@ class Tile {
     this.horizontalOffset = horizontalOffset;
     this.verticalOffset = verticalOffset;
     this.zoom = zoom;
+  }
+
+  createRequest(key) {
+    return new StaticMapHttpRequest (
+      this.latitude, this.longitude, this.height, this.width, this.zoom, key
+    ).generate();
   }
 
   // Generates a set of tiles for a given height and width offset.
