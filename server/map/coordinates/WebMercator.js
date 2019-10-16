@@ -13,6 +13,10 @@ class WebMercator {
     return new WebMercator(coordinate);
   }
 
+  shift(offset) {
+    return new WebMercator(this.value + offset);
+  }
+
   // Calculates the distance between Web Mercator coordinates
   // Wraps around by default (useful for east-west values)
   distanceTo(mercator, wraparound = true) {

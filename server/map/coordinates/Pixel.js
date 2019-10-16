@@ -21,6 +21,10 @@ class Pixel {
     return Math.abs(difference) % this.pixelSpace;
   }
 
+  shift(offset) {
+    return new Pixel(this.value + offset, this.zoom);
+  }
+
   // Normalizes Pixel value to a web projection coordinate
   get conversion() {
     return this.value / this.pixelSpace;

@@ -24,6 +24,7 @@ class StaticMapHttpRequest {
     params += 'center=' + this.latitude + ',' + this.longitude;
     params += '&zoom=' + this.zoom;
     params += '&size=' + this.height + 'x' + this.width;
+    params += '&style=feature:poi.business|visibility:off'
     params += '&key=' + this.key;
     return this.endpoint + params;
   }

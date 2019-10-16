@@ -1,7 +1,10 @@
 const Latitude = require('./coordinates/Latitude');
 const Longitude = require('./coordinates/Longitude');
 const Pixel = require('./coordinates/Pixel');
+const Tile = require('./../image/Tile');
 const WebMercator = require('./coordinates/WebMercator');
+const conversion = require('./coordinates/conversion');
+
 
 /** Represents the boundaries of a map border. */
 class Border {
@@ -41,13 +44,90 @@ class Border {
     return this.north.distanceTo(this.south.value, false);
   }
 
-  round() {
-    this.north.value = Math.round(this.north.value);
-    this.south.value = Math.round(this.south.value);
-    this.east.value = Math.round(this.east.value);
-    this.west.value = Math.round(this.west.value);
-    return this;
+  // Generates a new Border that adheres to a specific height:width ratio
+  // Less relevant for LatLng Borders, since they are not regular
+  stretchBorderToDimensionRatio(ratio) {
+    // Each dimension must be divisible by its ratio in order to match it.
+    let width = this.width;
+    let height = this.height;
+    width += (ratio.width - width % ratio.width) % ratio.width;
+    height += (ratio.height - height % ratio.height) % ratio.height;
+
+    // Stretch relatively smaller dimension to fit relatively larger one.
+    width = Math.max(width, height * ratio.width / ratio.height);
+    height = Math.max(height, width * ratio.height / ratio.width);
+
+    // Create new Border, distributing extra width and height evenly.
+    const widthDelta = width - this.width;
+    const heightDelta = height - this.height;
+
+    return this.shift(
+      Math.floor(heightDelta / 2) * -1,
+      Math.ceil(heightDelta / 2),
+      Math.ceil(widthDelta / 2),
+      Math.floor(widthDelta / 2) * -1
+    );
   }
+
+  // Finds the zoom necessary to fit the given pixels into each dimension.
+  calculateMinimumZoom(pixelHeight, pixelWidth, lockRatio) {
+    const normalizedBorder = Border.fromBorder(this, WebMercator.from);
+
+    // Locking: meet min requirement -> will increase other dimension to match
+    // Not locking: make sure density meets max requirement
+    const chooseDensity = lockRatio ? Math.min : Math.max;
+
+    // Determine minimum pixel to projection coordinate ratio.
+    const minPixelDensity = chooseDensity(
+      pixelWidth / normalizedBorder.width,
+      pixelHeight / normalizedBorder.height);
+    return conversion.pixelDensityToZoom(minPixelDensity);
+  }
+
+  shift(northDelta, southDelta, eastDelta, westDelta) {
+    return new Border(
+      this.north.shift(northDelta),
+      this.south.shift(southDelta),
+      this.east.shift(eastDelta),
+      this.west.shift(westDelta)
+    );
+  }
+
+  round() {
+    const clone = this.shift(0, 0, 0, 0);
+    clone.north.value = Math.round(this.north.value);
+    clone.south.value = Math.round(this.south.value);
+    clone.east.value = Math.round(this.east.value);
+    clone.west.value = Math.round(this.west.value);
+    return clone;
+  }
+
+  // Generates tile data array from this map frame.
+  asTiles(pixelHeight, pixelWidth, lockRatio) {
+    const zoom = this.calculateMinimumZoom(pixelHeight, pixelWidth, lockRatio);
+    let pixelBorder = Border.fromBorder(
+      this,
+      (coordinate) => Pixel.from(coordinate, zoom)).round();
+
+    if (lockRatio) {
+      const ratio = simplify(pixelHeight, pixelWidth);
+      pixelBorder = pixelBorder.stretchBorderToDimensionRatio(ratio);
+    }
+
+    return Tile.generateLooseSet(
+      pixelBorder.north.value,
+      pixelBorder.west.value,
+      pixelBorder.height,
+      pixelBorder.width,
+      zoom);
+  }
+}
+
+const simplify = (height, width) => {
+  // Euclid's GCD algorithm
+  const gcd = (a, b) => b ? gcd(b, a % b) : a;
+  const divisor = gcd(height, width);
+  return { height: height / divisor, width: width / divisor };
 }
 
 module.exports = Border;

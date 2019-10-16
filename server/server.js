@@ -4,7 +4,7 @@ const app = express();
 var path = require("path");
 const fetch = require('node-fetch');
 const { createCanvas, loadImage } = require('canvas');
-const Frame = require('./map/Frame');
+const Border = require('./map/Border');
 const { stitchTiles } = require('./image/combine');
 const StaticMapHttpRequest = require('./request/StaticMapHttpRequest');
 
@@ -41,7 +41,7 @@ const getMapTest = async (req, res, next) => {
 }
 
 const getFullMapTest = async (req, res, next) => {
-  const testTiles = new Frame(
+  const testTiles = Border.fromLatLng(
     {lat: StanLat, lng: StanLong},
     {lat: CamLat, lng: CamLong},
   ).asTiles(1280, 1280, true);
@@ -62,7 +62,7 @@ const StanLong = -122.1678751;
 const CamLat = 37.2805374;
 const CamLong = -121.9905719;
 
-const testFrame = new Frame(
+const testFrame = Border.fromLatLng(
   {lat: StanLat, lng: StanLong},
   {lat: CamLat, lng: CamLong},
 ).asTiles(1500, 1500, true);

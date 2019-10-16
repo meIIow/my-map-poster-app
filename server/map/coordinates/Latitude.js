@@ -16,6 +16,10 @@ class Latitude {
     return new Latitude(toLatitude(coordinate));
   }
 
+  shift(offset) {
+    return new Latitude(this.value + offset);
+  }
+
   // Calculates the distance between Latitudes - cannot wrap around poles.
   distanceTo(latitude) {
     return Math.abs(this.value - latitude) % DEGREES_LATITUDE_RANGE;

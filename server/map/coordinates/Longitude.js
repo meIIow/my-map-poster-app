@@ -14,6 +14,10 @@ class Longitude {
     return new Longitude(toLongitude(coordinate));
   }
 
+  shift(offset) {
+    return new Longitude(this.value + offset);
+  }
+
   // Calculates the west (this) -> east (input) distance between Latitudes.
   // Wraps around antimeridian if necessary.
   distanceTo(longitude) {
