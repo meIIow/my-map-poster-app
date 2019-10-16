@@ -16,27 +16,14 @@ const stitchTiles = async (tileMatrix, key) => {
 
   const canvas = createCanvas(xMax, yMax);
 
-  await Promise.all(imgData.map(async (data) => {
+  (await Promise.all(imgData.map(async (data) => {
+    const h = data.horizontal;
+    const v = data.vertical;
     const img = await loadImage(data.url);
-    canvas.getContext('2d').drawImage(img, data.horizontal, data.vertical);
-  }));
+    return { img, h, v }
+  }))).forEach(x => canvas.getContext('2d').drawImage(x.img, x.h, x.v));
 
   return canvas.toBuffer();
 }
-
-// // Step 2 - helper function that takes images and stitches them together
-// const testImageStitch = async (a, b) => {
-//   console.log("A: ");
-//   console.log(a);
-//   const testCanvas = createCanvas(1280, 640);
-//   const ctx = testCanvas.getContext('2d');
-//   const imgA = await loadImage(a);
-//   const imgB = await loadImage(b);
-//   console.log("imgA");
-//   console.log(imgA);
-//   ctx.drawImage(imgA, 0, 0);
-//   ctx.drawImage(imgB, 640, 0);
-//   return await testCanvas.toBuffer();
-// }
 
 module.exports = { stitchTiles };

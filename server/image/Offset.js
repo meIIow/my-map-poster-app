@@ -2,7 +2,8 @@
 class Offset {
   constructor(origin, range, length, overlap = 0, exact = false) {
     this.origin = origin;
-    this.visible = Math.floor(length * (1 - overlap));
+    this.range = range;
+    this.visible = length - overlap;
     this.count = Math.ceil(range / this.visible);
     this.length = exact ? Math.floor(range / this.count) : length;
     this.extra = exact ? range % this.length : 0;

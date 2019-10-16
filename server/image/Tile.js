@@ -46,7 +46,7 @@ class Tile {
 
   // Convenience wrapper to create a tile set that contains the desired section.
   static generateLooseSet(north, west, height, width, zoom) {
-    const heightOffset = new Offset(north, height, MAX_PIXELS, 0, false);
+    const heightOffset = new Offset(north, height, MAX_PIXELS, 25, false);
     const widthOffset = new Offset(west, width, MAX_PIXELS, 0, false);
 
     return Tile.generateTileSet(heightOffset, widthOffset, zoom);
