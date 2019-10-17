@@ -9,6 +9,10 @@ const conversion = require('./coordinates/conversion');
 /** Represents the boundaries of a map border. */
 class Border {
   constructor(north, south, east, west) {
+    if (typeof north !== typeof south) throw Error;
+    if (typeof north !== typeof east) throw Error;
+    if (typeof north !== typeof west) throw Error;
+
     this.north = north;
     this.south = south;
     this.east = east;
@@ -17,12 +21,7 @@ class Border {
 
   // Generates a new Border from an existing one, given coordinate conversion
   static fromBorder(border, verticalConversion, horizontalConversion) {
-    if (horizontalConversion == null) horizontalConversion = verticalConversion;
-    return new Border(
-      verticalConversion(border.north.conversion),
-      verticalConversion(border.south.conversion),
-      horizontalConversion(border.east.conversion),
-      horizontalConversion(border.west.conversion));
+    return border.convert(verticalConversion, horizontalConversion);
   }
 
   // Generates a new Border from two bounding lat/lng coordinate maps
@@ -42,6 +41,17 @@ class Border {
   // Calculates the border height
   get height() {
     return this.north.distanceTo(this.south.value, false);
+  }
+
+  // Generates a new Border from an existing one, given coordinate conversion
+  convert(verticalConversion, horizontalConversion) {
+    if (verticalConversion == null) throw Error;
+    if (horizontalConversion == null) horizontalConversion = verticalConversion;
+    return new Border(
+      verticalConversion(this.north.conversion),
+      verticalConversion(this.south.conversion),
+      horizontalConversion(this.east.conversion),
+      horizontalConversion(this.west.conversion));
   }
 
   // Generates a new Border that adheres to a specific height:width ratio
@@ -102,47 +112,27 @@ class Border {
   }
 
   // Generates tile data array from this map Border.
-  asTiles(pixelHeight, pixelWidth, lockRatio) {
+  fitToDimensions(pixelHeight, pixelWidth, lockRatio) {
     const zoom = this.calculateMinimumZoom(pixelHeight, pixelWidth, lockRatio);
-    let pixelBorder = Border.fromBorder(
-      this,
-      (coordinate) => Pixel.from(coordinate, zoom)).round();
+    const pixelBorder =
+      this.convert(coordinate => Pixel.from(coordinate, zoom)).round();
 
     if (lockRatio) {
       const ratio = simplify(pixelHeight, pixelWidth);
-      pixelBorder = pixelBorder.stretchToMatch(ratio);
+      return pixelBorder.stretchToMatch(ratio);
     }
+    return pixelBorder;
+  }
 
+  // Generates tile data array from this map Border.
+  asTiles(pixelHeight, pixelWidth, lockRatio) {
+    const pixelBorder = this.fitToDimensions(pixelHeight, pixelWidth, lockRatio);
     return Tile.generateLooseSet(
       pixelBorder.north.value,
       pixelBorder.west.value,
       pixelBorder.height,
       pixelBorder.width,
-      zoom);
-  }
-
-  // Generates tile data array from this map Border.
-  asTiles2(pixelHeight, pixelWidth, lockRatio) {
-    const zoom = this.calculateMinimumZoom(pixelHeight, pixelWidth, lockRatio);
-    let pixelBorder = Border.fromBorder(
-      this,
-      (coordinate) => Pixel.from(coordinate, zoom)).round();
-
-    if (lockRatio) {
-      const ratio = simplify(pixelHeight, pixelWidth);
-      pixelBorder = pixelBorder.stretchToMatch(ratio);
-    }
-
-    return {
-      height: pixelBorder.height,
-      width: pixelBorder.width,
-      tiles: Tile.generateLooseSet(
-      pixelBorder.north.value,
-      pixelBorder.west.value,
-      pixelBorder.height,
-      pixelBorder.width,
-      zoom).reduce((arr, tiles) => [ ...arr, ...tiles ], [])
-    };
+      pixelBorder.north.zoom);
   }
 }
 

@@ -9,6 +9,7 @@ const { stitchTiles } = require('./image/combine');
 const PosterImage = require('./image/PosterImage');
 const StaticMapHttpRequest = require('./request/StaticMapHttpRequest');
 const OriginalStaticMapHttpRequest = require('./request/OriginalStaticMapHttpRequest');
+const Tile = require('./image/Tile.js')
 
 
 // shhhh!!
@@ -59,12 +60,12 @@ const getMapPoster = async (req, res, next) => {
   const border = Border.fromLatLng(
     {lat: StanLat, lng: StanLong},
     {lat: CamLat, lng: CamLong},
-  ).asTiles2(1280, 1280, true);
+  ).fitToDimensions(1280, 1280, true);
 
   const request = new StaticMapHttpRequest(apiKey);
   const image = new PosterImage(border.height, border.width);
   await image.overlay(
-    border.tiles.map(tile => {
+    Tile.generateBorderSet(border).map(tile => {
       return { ...tile, url: request.generateImageUrl(tile) };
     }));
   console.log(image.buffer);

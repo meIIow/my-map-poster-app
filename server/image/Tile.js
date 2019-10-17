@@ -8,7 +8,7 @@ const MAX_PIXELS = 640; // Highest pixel dimensions that can be returned.
 
 /** A single image tile that can be retrieved via the Static Map API. */
 class Tile {
-  constructor(lat, lng, height, width, verticalOffset, horizontalOffset, zoom) {
+  constructor(lat, lng, height, width, yOffset, xOffset, zoom) {
     // Center coordinates
     this.latitude = lat;
     this.longitude = lng;
@@ -16,8 +16,8 @@ class Tile {
     this.height = height;
     this.width = width;
     // Offset in Pixels
-    this.xOffset = horizontalOffset;
-    this.yOffset = verticalOffset;
+    this.xOffset = xOffset;
+    this.yOffset = yOffset;
     this.zoom = zoom;
   }
 
@@ -43,6 +43,16 @@ class Tile {
         horizontal.offset,
         zoom);
     }));
+  }
+
+  // Convenience wrapper to create a tile set that contains the desired section.
+  static generateBorderSet(border) {
+    return Tile.generateLooseSet(
+      border.north.value,
+      border.west.value,
+      border.height,
+      border.width,
+      border.north.zoom).reduce((arr, tile) => [ ...arr, ...tile ], []);
   }
 
   // Convenience wrapper to create a tile set that contains the desired section.
