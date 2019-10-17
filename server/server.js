@@ -1,13 +1,11 @@
 const fs = require('fs');
-var express = require("express");
+const express = require("express");
 const app = express();
-var path = require("path");
+const path = require("path");
 const fetch = require('node-fetch');
 const Border = require('./map/Border');
-const { stitchTiles } = require('./image/combine');
 const PosterImage = require('./map/PosterImage');
 const StaticMapHttpRequest = require('./request/StaticMapHttpRequest');
-const OriginalStaticMapHttpRequest = require('./request/OriginalStaticMapHttpRequest');
 const Tile = require('./map/Tile.js')
 
 // shhhh!!
@@ -23,29 +21,10 @@ server.listen(port, function() {
 
 app.use(express.static(path.join(__dirname, '../public')));
 
-const StanLat = 37.4317565;
-const StanLong = -122.1678751;
-
-const CamLat = 37.2805374;
-const CamLong = -121.9905719;
-
-const getFullMapTest = async (req, res, next) => {
-  const testTiles = Border.fromLatLng(
-    {lat: StanLat, lng: StanLong},
-    {lat: CamLat, lng: CamLong},
-  ).asTiles(1280, 1280, true);
-
-  const imgBuff = await stitchTiles(testTiles, apiKey);
-  console.log(imgBuff); // Step 3 - Send stitched images down and render on page
-
-  res.contentType('png');
-  res.send(imgBuff);
-}
-
-const getMapPoster = async (req, res, next) => {
+const getMapPosterTest = async (req, res, next) => {
   const border = Border.fromLatLng(
-    {lat: StanLat, lng: StanLong},
-    {lat: CamLat, lng: CamLong},
+    {lat: 37.4317565, lng: -122.1678751},
+    {lat: 37.2805374, lng: -121.9905719},
   ).fitToDimensions(1280, 1280, true);
 
   const request = new StaticMapHttpRequest(apiKey);
@@ -61,5 +40,5 @@ const getMapPoster = async (req, res, next) => {
 }
 
 // Serve photo
-app.get('/test', getFullMapTest);
-app.get('/photo', getMapPoster);
+app.get('/test', getMapPosterTest);
+app.get('/photo', getMapPosterTest);
