@@ -3,6 +3,7 @@ const express = require("express");
 const app = express();
 const path = require("path");
 const fetch = require('node-fetch');
+const bodyParser = require('body-parser');
 const Border = require('./map/Border');
 const PosterImage = require('./map/PosterImage');
 const StaticMapHttpRequest = require('./request/StaticMapHttpRequest');
@@ -20,11 +21,15 @@ server.listen(port, function() {
 });
 
 app.use(express.static(path.join(__dirname, '../public')));
+app.use(bodyParser.json());
 
-const getMapPosterTest = async (req, res, next) => {
+const getMapPoster = async (req, res, next) => {
+  console.log(req.body);
+  console.log(req.body.northWestLatLng);
+  console.log(req.body.southEastLatLng);
   const border = Border.fromLatLng(
-    {lat: 37.4317565, lng: -122.1678751},
-    {lat: 37.2805374, lng: -121.9905719},
+    req.body.northWestLatLng,
+    req.body.southEastLatLng,
   ).fitToDimensions(1280, 1280, true);
 
   const request = new StaticMapHttpRequest(apiKey);
@@ -40,5 +45,4 @@ const getMapPosterTest = async (req, res, next) => {
 }
 
 // Serve photo
-app.get('/test', getMapPosterTest);
-app.get('/photo', getMapPosterTest);
+app.post('/photo', getMapPoster);

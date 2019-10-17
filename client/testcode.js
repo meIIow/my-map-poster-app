@@ -4,14 +4,18 @@ const urlCreator = window.URL || window.webkitURL;
 
 const url = '/photo';
 
-
-// example url from maps doc - including their api key.
-const fullUrl = "https://maps.googleapis.com/maps/api/staticmap?size=512x512&maptype=roadmap\&markers=size:mid%7Ccolor:red%7CSan+Francisco,CA%7COakland,CA%7CSan+Jose,CA&key=AIzaSyCCJqPA_fCz_LxgVLeK0jG0Ler-joGx0Bw"
-
-//document.getElementById('mypic').src ='/test';
+const testLatLng = {
+  northWestLatLng: {lat: 37.4317565, lng: -122.1678751},
+  southEastLatLng: {lat: 37.2805374, lng: -121.9905719},
+}
 
 fetch(url, {
-  method: 'GET'
+  method: 'POST',
+  headers: {
+    Accept: 'application/json',
+    'Content-Type': 'application/json',
+  },
+  body: JSON.stringify(testLatLng),
 }).then(response => {
   if (response.status >= 200 && response.status < 300) {
     console.log(response)
