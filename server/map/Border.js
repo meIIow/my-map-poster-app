@@ -25,7 +25,7 @@ class Border {
       horizontalConversion(border.west.conversion));
   }
 
-  // Generates a new Border two bounding lat/lng coordinate maps
+  // Generates a new Border from two bounding lat/lng coordinate maps
   static fromLatLng(nw, se) {
     return new Border(
       new Latitude(nw.lat),
@@ -46,7 +46,7 @@ class Border {
 
   // Generates a new Border that adheres to a specific height:width ratio
   // Less relevant for LatLng Borders, since they are not regular
-  stretchBorderToDimensionRatio(ratio) {
+  stretchToMatch(ratio) {
     // Each dimension must be divisible by its ratio in order to match it.
     let width = this.width;
     let height = this.height;
@@ -60,7 +60,6 @@ class Border {
     // Create new Border, distributing extra width and height evenly.
     const widthDelta = width - this.width;
     const heightDelta = height - this.height;
-
     return this.shift(
       Math.floor(heightDelta / 2) * -1,
       Math.ceil(heightDelta / 2),
@@ -69,7 +68,7 @@ class Border {
     );
   }
 
-  // Finds the zoom necessary to fit the given pixels into each dimension.
+  // Finds the zoom necessary to fit some number of pixels into each dimension.
   calculateMinimumZoom(pixelHeight, pixelWidth, lockRatio) {
     const normalizedBorder = Border.fromBorder(this, WebMercator.from);
 
@@ -102,7 +101,7 @@ class Border {
     return clone;
   }
 
-  // Generates tile data array from this map frame.
+  // Generates tile data array from this map Border.
   asTiles(pixelHeight, pixelWidth, lockRatio) {
     const zoom = this.calculateMinimumZoom(pixelHeight, pixelWidth, lockRatio);
     let pixelBorder = Border.fromBorder(
@@ -111,7 +110,7 @@ class Border {
 
     if (lockRatio) {
       const ratio = simplify(pixelHeight, pixelWidth);
-      pixelBorder = pixelBorder.stretchBorderToDimensionRatio(ratio);
+      pixelBorder = pixelBorder.stretchToMatch(ratio);
     }
 
     return Tile.generateLooseSet(
@@ -120,6 +119,30 @@ class Border {
       pixelBorder.height,
       pixelBorder.width,
       zoom);
+  }
+
+  // Generates tile data array from this map Border.
+  asTiles2(pixelHeight, pixelWidth, lockRatio) {
+    const zoom = this.calculateMinimumZoom(pixelHeight, pixelWidth, lockRatio);
+    let pixelBorder = Border.fromBorder(
+      this,
+      (coordinate) => Pixel.from(coordinate, zoom)).round();
+
+    if (lockRatio) {
+      const ratio = simplify(pixelHeight, pixelWidth);
+      pixelBorder = pixelBorder.stretchToMatch(ratio);
+    }
+
+    return {
+      height: pixelBorder.height,
+      width: pixelBorder.width,
+      tiles: Tile.generateLooseSet(
+      pixelBorder.north.value,
+      pixelBorder.west.value,
+      pixelBorder.height,
+      pixelBorder.width,
+      zoom).reduce((arr, tiles) => [ ...arr, ...tiles ], [])
+    };
   }
 }
 

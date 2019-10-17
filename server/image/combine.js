@@ -5,11 +5,11 @@ const stitchTiles = async (tileMatrix, key) => {
   let xMax = 0;
   let yMax = 0;
   tileMatrix.forEach(row => row.forEach(tile => {
-    xMax = tile.horizontalOffset + tile.width;
-    yMax = tile.verticalOffset + tile.height;
+    xMax = tile.xOffset + tile.width;
+    yMax = tile.yOffset + tile.height;
     imgData.push({
-      horizontal: tile.horizontalOffset,
-      vertical: tile.verticalOffset,
+      horizontal: tile.xOffset,
+      vertical: tile.yOffset,
       url: tile.createRequest(key)
     })
   }));

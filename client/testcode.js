@@ -2,7 +2,8 @@ const route = '';
 const urlCreator = window.URL || window.webkitURL;
 //document.getElementById('mypic').src = urlCreator.createObjectURL(data);
 
-const url = '/test';
+const url = '/photo';
+
 
 // example url from maps doc - including their api key.
 const fullUrl = "https://maps.googleapis.com/maps/api/staticmap?size=512x512&maptype=roadmap\&markers=size:mid%7Ccolor:red%7CSan+Francisco,CA%7COakland,CA%7CSan+Jose,CA&key=AIzaSyCCJqPA_fCz_LxgVLeK0jG0Ler-joGx0Bw"

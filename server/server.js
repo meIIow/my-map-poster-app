@@ -6,7 +6,9 @@ const fetch = require('node-fetch');
 const { createCanvas, loadImage } = require('canvas');
 const Border = require('./map/Border');
 const { stitchTiles } = require('./image/combine');
+const PosterImage = require('./image/PosterImage');
 const StaticMapHttpRequest = require('./request/StaticMapHttpRequest');
+const OriginalStaticMapHttpRequest = require('./request/OriginalStaticMapHttpRequest');
 
 
 // shhhh!!
@@ -53,8 +55,28 @@ const getFullMapTest = async (req, res, next) => {
   res.send(imgBuff);
 }
 
+const getMapPoster = async (req, res, next) => {
+  const border = Border.fromLatLng(
+    {lat: StanLat, lng: StanLong},
+    {lat: CamLat, lng: CamLong},
+  ).asTiles2(1280, 1280, true);
+
+  const request = new StaticMapHttpRequest(apiKey);
+  const image = new PosterImage(border.height, border.width);
+  await image.overlay(
+    border.tiles.map(tile => {
+      return { ...tile, url: request.generateImageUrl(tile) };
+    }));
+  console.log(image.buffer);
+
+  res.contentType('png');
+  res.send(image.buffer);
+}
+
 // Serve photo
 app.get('/test', getFullMapTest);
+
+app.get('/photo', getMapPoster);
 
 const StanLat = 37.4317565;
 const StanLong = -122.1678751;
@@ -68,7 +90,7 @@ const testFrame = Border.fromLatLng(
 ).asTiles(1500, 1500, true);
 
 const generateUrl = (elem) => {
-  return new StaticMapHttpRequest(
+  return new OriginalStaticMapHttpRequest(
     elem.latitude, elem.longitude, elem.height, elem.width, elem.zoom, apiKey
   ).generate();
 }

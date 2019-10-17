@@ -3,30 +3,32 @@ const FORMAT_OPTION = {
   Jpg: 'jpg',
   Gif: 'gif'
 }
+const ENDPOINT =  'https://maps.googleapis.com/maps/api/staticmap?';
 
-/** Stores and generates formatted requests to the static maps endpoint. */
+/** Generates formatted requests to the static maps endpoint. */
 //TODO: Streamline adding data, allow for more format options
 class StaticMapHttpRequest {
-  constructor(lat, lng, height, width, zoom, key) {
-    this.endpoint = 'https://maps.googleapis.com/maps/api/staticmap?';
-    this.latitude = lat;
-    this.longitude = lng;
-    this.height = height;
-    this.width = width;
-    this.zoom = zoom;
+  constructor(key, style = 'feature:poi.business|visibility:off') {
+    if (key === null) throw Error;
     this.key = key;
+    this.style = style;
   }
 
-  generate() {
-    if (this.latitude == null || this.longitude == null) throw Error;
-    if (this.key == null) throw Error;
-    let params = '';
-    params += 'center=' + this.latitude + ',' + this.longitude;
-    params += '&zoom=' + this.zoom;
-    params += '&size=' + this.height + 'x' + this.width;
-    params += '&style=feature:poi.business|visibility:off'
-    params += '&key=' + this.key;
-    return this.endpoint + params;
+  generateImageUrl(image) {
+    // image must have center coordinates
+    if (image.latitude == null || image.longitude == null) throw Error;
+    // image must have a zoom level
+    if (image.zoom === null) throw Error;
+    // image must have pixel height and width
+    if (image.height == null || image.width == null) throw Error;
+
+    let request = ENDPOINT;
+    request += 'center=' + image.latitude + ',' + image.longitude;
+    request += '&zoom=' + image.zoom;
+    request += '&size=' + image.height + 'x' + image.width;
+    if (this.style) request += '&style=' + this.style;
+    request += '&key=' + this.key;
+    return request;
   }
 }
 
