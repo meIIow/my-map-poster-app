@@ -29,7 +29,8 @@ class Tile {
 
   // Generates a set of tiles for a given height and width offset.
   static generateTileSet(heightOffset, widthOffset, zoom) {
-    const tiles = Array(heightOffset.count).fill(Array(widthOffset.count).fill());
+    const tiles =
+      Array(heightOffset.count).fill(Array(widthOffset.count).fill());
     return tiles.map((arr, row) => arr.map((undef, column) => {
       const vertical = heightOffset.getData(row);
       const horizontal = widthOffset.getData(column);
