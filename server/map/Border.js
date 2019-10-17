@@ -19,11 +19,6 @@ class Border {
     this.west = west;
   }
 
-  // Generates a new Border from an existing one, given coordinate conversion
-  static fromBorder(border, verticalConversion, horizontalConversion) {
-    return border.convert(verticalConversion, horizontalConversion);
-  }
-
   // Generates a new Border from two bounding lat/lng coordinate maps
   static fromLatLng(nw, se) {
     return new Border(
@@ -80,7 +75,7 @@ class Border {
 
   // Finds the zoom necessary to fit some number of pixels into each dimension.
   calculateMinimumZoom(pixelHeight, pixelWidth, lockRatio) {
-    const normalizedBorder = Border.fromBorder(this, WebMercator.from);
+    const normalizedBorder = this.convert(WebMercator.from);
 
     // Locking: meet min requirement -> will increase other dimension to match
     // Not locking: make sure density meets max requirement
