@@ -7,12 +7,13 @@ class PosterImage {
   }
 
   async overlay(images) {
+    const draw = this.context.drawImage;
     (await Promise.all(
       images.map(async (image) => {
         if (image.xOffset === null || image.yOffset === null || !image.url) throw Error;
         return { ...image, img: await loadImage(image.url) };
       })
-    )).forEach(i => this.context.drawImage(i.img, i.xOffset, i.yOffset));
+    )).forEach(image => draw(image.img, image.xOffset, image.yOffset));
   }
 
 get buffer() {

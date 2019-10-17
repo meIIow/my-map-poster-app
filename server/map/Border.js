@@ -1,7 +1,7 @@
 const Latitude = require('./coordinates/Latitude');
 const Longitude = require('./coordinates/Longitude');
 const Pixel = require('./coordinates/Pixel');
-const Tile = require('./../image/Tile');
+const Tile = require('./../map/Tile');
 const WebMercator = require('./coordinates/WebMercator');
 const conversion = require('./coordinates/conversion');
 

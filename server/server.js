@@ -6,10 +6,10 @@ const fetch = require('node-fetch');
 const { createCanvas, loadImage } = require('canvas');
 const Border = require('./map/Border');
 const { stitchTiles } = require('./image/combine');
-const PosterImage = require('./image/PosterImage');
+const PosterImage = require('./map/PosterImage');
 const StaticMapHttpRequest = require('./request/StaticMapHttpRequest');
 const OriginalStaticMapHttpRequest = require('./request/OriginalStaticMapHttpRequest');
-const Tile = require('./image/Tile.js')
+const Tile = require('./map/Tile.js')
 
 
 // shhhh!!
