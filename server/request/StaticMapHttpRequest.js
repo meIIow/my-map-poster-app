@@ -6,20 +6,18 @@ const FORMAT_OPTION = {
 const ENDPOINT =  'https://maps.googleapis.com/maps/api/staticmap?';
 
 /** Generates formatted requests to the static maps endpoint. */
-//TODO: Streamline adding data, allow for more format options
 class StaticMapHttpRequest {
   constructor(key, style = 'feature:poi.business|visibility:off') {
-    if (key === null) throw Error;
+    if (key == null) throw Error;
     this.key = key;
     this.style = style;
   }
 
+  // Generates a formatted url for the given image data.
   generateImageUrl(image) {
-    // image must have center coordinates
+    // image must have center coordinates, zoom level, height & width
     if (image.latitude == null || image.longitude == null) throw Error;
-    // image must have a zoom level
-    if (image.zoom === null) throw Error;
-    // image must have pixel height and width
+    if (image.zoom == null) throw Error;
     if (image.height == null || image.width == null) throw Error;
 
     let request = ENDPOINT;
