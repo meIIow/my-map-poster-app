@@ -163,7 +163,8 @@ describe('Border ', () => {
       expect(pixToWeb.west.value).toBeCloseTo(leftish.web.value);
     });
   });
-  describe('stretches to match ', () => {
+
+  describe('stretches fractional dimensions to match ', () => {
     test('pre-matched ratio by staying the same', () => {
       const border = new Border(
         upper.web, lower.web, rightish.web, leftish.web
@@ -184,7 +185,22 @@ describe('Border ', () => {
       expect(stretched.east.value).toEqual(border.east.value);
       expect(stretched.west.value).toEqual(border.west.value);
     });
-    test('integer by snapping close dimensions up to match', () => {
+    // WRAPAROUND WILL CURRENTLY FAIL!
+    // test('for wraparound case', () => {
+    //   // 49 x 39 -> 60 x 40
+    //   const border = new Border(
+    //     new Pixel(25, 0), new Pixel(74, 0), new Pixel(69, 0), new Pixel(30, 0)
+    //   );
+    //   const stretched = border.stretchToMatch({width: 2, height: 3});
+    //   expect(stretched.north.value).toEqual(20);
+    //   expect(stretched.south.value).toEqual(80);
+    //   expect(stretched.east.value).toEqual(70);
+    //   expect(stretched.west.value).toEqual(30);
+    // });
+  });
+
+  describe('stretches integer dimensions to match ', () => {
+    test('by snapping close dimensions up', () => {
       // 58 x 38 -> 60 x 40
       const border = new Border(
         new Pixel(21, 0), new Pixel(79, 0), new Pixel(69, 0), new Pixel(31, 0)
@@ -195,7 +211,7 @@ describe('Border ', () => {
       expect(stretched.east.value).toEqual(70);
       expect(stretched.west.value).toEqual(30);
     });
-    test('integer by increasing south/west border more on odd delta', () => {
+    test('by increasing south/west border more on odd delta', () => {
       // 59 x 39 -> 60 x 40
       const border = new Border(
         new Pixel(20, 0), new Pixel(79, 0), new Pixel(69, 0), new Pixel(30, 0)
@@ -206,7 +222,7 @@ describe('Border ', () => {
       expect(stretched.east.value).toEqual(70);
       expect(stretched.west.value).toEqual(30);
     });
-    test('for complex integer case', () => {
+    test('for complex case', () => {
       // 49 x 39 -> 60 x 40
       const border = new Border(
         new Pixel(25, 0), new Pixel(74, 0), new Pixel(69, 0), new Pixel(30, 0)
@@ -230,13 +246,27 @@ describe('Border ', () => {
     //   expect(stretched.west.value).toEqual(30);
     // });
   });
-  // describe('converts correctly to', () => {
-  //   test('most extreme projection values', () => {
-  //     expect(new WebMercator(1).conversion).toBeCloseTo(1);
-  //     expect(new WebMercator(0).conversion).toBeCloseTo(0);
-  //   });
-  //   test('prime meridian projection value', () => {
-  //     expect(new WebMercator(0.5).conversion).toBeCloseTo(0.5);
-  //   });
-  // });
+  describe('calculates minimum zoom ', () => {
+    test('for exact pixel match', () => {
+      // width & height are 0.5 -> density is 2048 -> zoom is 3
+      const border = new Border(
+        upper.web, lower.web, rightish.web, leftish.web
+      );
+      expect(border.calculateMinimumZoom(1024, 1024, false)).toEqual(3);
+    });
+    test('when pixel size barely requires extra zoom ', () => {
+      // width & height are 0.5 -> density is > 2048 -> zoom is 4
+      const border = new Border(
+        upper.web, lower.web, rightish.web, leftish.web
+      );
+      expect(border.calculateMinimumZoom(1025, 1024, false)).toEqual(4);
+    });
+    test('as lower value when the other dimension will increae ', () => {
+      // width & height are 0.5 -> smaller density is 2048 -> zoom is 3
+      const border = new Border(
+        upper.web, lower.web, rightish.web, leftish.web
+      );
+      expect(border.calculateMinimumZoom(1025, 1024, true)).toEqual(3);
+    });
+  });
 });
