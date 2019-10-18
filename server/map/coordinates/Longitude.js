@@ -6,6 +6,7 @@ const DEGREES_LONGITUDE_RANGE = MAX_DEGREES_LONGITUDE - MIN_DEGREES_LONGITUDE;
 /** Represents a Longitude coordinate value. */
 class Longitude {
   constructor(value) {
+    if (value == null) throw Error;
     this.value = value;
   }
 

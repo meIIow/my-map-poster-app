@@ -5,6 +5,7 @@ const WEB_MERCATOR_RANGE = MAX_WEB_MERCATOR - MIN_WEB_MERCATOR;
 /** Represents a Web Mercator (normalized) coordinate value. */
 class WebMercator {
   constructor(value) {
+    if (value == null) throw Error;
     this.value = value;
   }
 

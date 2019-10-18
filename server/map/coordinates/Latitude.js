@@ -8,6 +8,7 @@ const DEGREES_LATITUDE_RANGE = MAX_DEGREES_LATITUDE - MIN_DEGREES_LATITUDE;
 /** Represents a Latitude coordinate value. */
 class Latitude {
   constructor(value) {
+    if (value == null) throw Error;
     this.value = value;
   }
 
@@ -17,7 +18,7 @@ class Latitude {
   }
 
   shift(offset) {
-    return new Latitude(this.value + offset);
+    return new Latitude(this.value - offset);
   }
 
   // Calculates the distance between Latitudes - cannot wrap around poles.

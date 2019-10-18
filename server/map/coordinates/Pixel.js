@@ -3,6 +3,9 @@ const { zoomToPixelSpace } = require('./conversion');
 /** Represents a Pixel coordinate value. */
 class Pixel {
   constructor(value, zoom) {
+    if (value == null) throw Error;
+    if (zoom == null) throw Error;
+
     this.value = value;
     this.zoom = zoom;
     this.pixelSpace = zoomToPixelSpace(zoom);
