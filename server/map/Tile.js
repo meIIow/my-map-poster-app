@@ -24,7 +24,7 @@ class Tile {
   static generateTileSet(heightOffset, widthOffset, zoom) {
     const tiles =
       Array(heightOffset.count).fill(Array(widthOffset.count).fill());
-    return tiles.map((arr, row) => arr.map((undef, column) => {
+    return tiles.map((arr, row) => arr.map((_, column) => {
       const vertical = heightOffset.getData(row);
       const horizontal = widthOffset.getData(column);
       return new Tile(
@@ -38,9 +38,9 @@ class Tile {
     }));
   }
 
-  // Convenience wrapper to create a tile set that contains the desired section.
+  // Generates an array of tiles based on the pixel border area.
   static generateBorderSet(border) {
-    return Tile.generateLooseSet(
+    return Tile.generateDefaultSet(
       border.north.value,
       border.west.value,
       border.height,
@@ -49,36 +49,11 @@ class Tile {
   }
 
   // Convenience wrapper to create a tile set that contains the desired section.
-  static generateLooseSet(north, west, height, width, zoom) {
-    const heightOffset = new Offset(north, height, MAX_PIXELS, 25, false);
-    const widthOffset = new Offset(west, width, MAX_PIXELS, 0, false);
+  static generateDefaultSet(north, west, height, width, zoom) {
+    const heightOffset = new Offset(north, height, MAX_PIXELS, 25);
+    const widthOffset = new Offset(west, width, MAX_PIXELS, 0);
 
     return Tile.generateTileSet(heightOffset, widthOffset, zoom);
-  }
-
-  // Deprecated - Keep until testing added
-  static generateSet(north, west, height, width, zoom) {
-    const horizontalTileCount = Math.ceil(width / MAX_PIXELS);
-    const verticalTileCount = Math.ceil(height / MAX_PIXELS);
-
-    console.log(horizontalTileCount);
-    console.log(verticalTileCount);
-
-    const tiles = Array(verticalTileCount).fill(Array(horizontalTileCount).fill());
-    return tiles.map((arr, row) => arr.map((undef, column) => {
-      const centerLatitude = new Pixel(
-        north + MAX_PIXELS / 2 + row * MAX_PIXELS, zoom);
-      const centerLongitude = new Pixel(
-        west + MAX_PIXELS / 2 + column * MAX_PIXELS, zoom);
-      return new Tile(
-        Latitude.from(centerLatitude.conversion).value,
-        Longitude.from(centerLongitude.conversion).value,
-        MAX_PIXELS,
-        MAX_PIXELS,
-        row * MAX_PIXELS,
-        column * MAX_PIXELS,
-        zoom);
-    }));
   }
 }
 

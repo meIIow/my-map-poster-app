@@ -1,18 +1,20 @@
-/** SOMETHING SOMETHING. */
+/** Calculates offsets for each element in an overlapping series. */
 class Offset {
-  constructor(origin, range, length, overlap = 0, exact = false) {
+  constructor(origin, range, length, overlap = 0) {
+    if (!Number.isInteger(origin)) throw Error;
+    if (!Number.isInteger(range)) throw Error;
+    if (!Number.isInteger(length)) throw Error;
+
     this.origin = origin;
     this.range = range;
     this.visible = length - overlap;
     this.count = Math.ceil(range / this.visible);
-    this.length = exact ? Math.floor(range / this.count) : length;
-    this.extra = exact ? range % this.length : 0;
+    this.length = length;
   }
 
   getData(num) {
-    const last = (num == this.count);
     const offset = this.visible * num;
-    const length = this.length + last * this.extra;
+    const length = this.length;
     const center = this.origin + offset + length / 2;
     return { center, offset, length };
   }
