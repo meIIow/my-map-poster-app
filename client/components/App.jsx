@@ -1,10 +1,5 @@
 import React, { Component } from 'react';
-
-const route = '';
 const urlCreator = window.URL || window.webkitURL;
-//document.getElementById('mypic').src = urlCreator.createObjectURL(data);
-
-const url = '/photo';
 
 const testLatLng = {
   northWestLatLng: {lat: 37.4317565, lng: -122.1678751},
@@ -19,6 +14,12 @@ const hannaTokyo = {
 const southPas = {
   northWestLatLng: {lat: 34.1514208, lng:-118.1764449},
   southEastLatLng: {lat:34.0960171, lng: -118.1158297},
+}
+
+function getInitialState() {
+  return {
+    img: false // stores image data
+  };
 }
 
 class App extends Component {
@@ -49,7 +50,10 @@ class App extends Component {
         console.log(response)
         response.blob().then(data => {
           console.log(data);
-          document.getElementById('mypic').src = urlCreator.createObjectURL(data);
+          that.setState(Object.assign(
+            that.state,
+            { img: data },
+          ));
           return Promise.resolve();
         })
       }
@@ -59,6 +63,8 @@ class App extends Component {
 
   render() {
     console.log("App page rendering...")
+
+    if (this.state.img) document.getElementById('mypic').src = urlCreator.createObjectURL(this.state.img);
 
     return (
       <div>
