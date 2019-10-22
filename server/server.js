@@ -20,6 +20,7 @@ server.listen(port, function() {
   console.log("Server listening at port %d", port);
 });
 
+
 app.use(express.static(path.join(__dirname, '../public')));
 app.use(bodyParser.json());
 
@@ -30,7 +31,7 @@ const getMapPoster = async (req, res, next) => {
   const border = Border.fromLatLng(
     req.body.northWestLatLng,
     req.body.southEastLatLng,
-  ).fitToDimensions(1700, 1100, true); //5100, 3300, true
+  ).fitToDimensions(600, 600, true); // Small value for experimenting.
 
   const request = new StaticMapHttpRequest(apiKey);
   const image = new PosterImage(border.height, border.width);
