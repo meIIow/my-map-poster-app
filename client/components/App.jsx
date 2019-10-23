@@ -24,7 +24,19 @@ class App extends Component {
   }
 
   componentDidMount() {
-    // return this.setMap()
+    const map = new google.maps.Map(document.getElementById('myblock'), {
+      center: {lat: -34.397, lng: 150.644},
+      zoom: 8,
+      clickableIcons: false,
+      fullscreenControl: false,
+      mapTypeControl: true,
+      mapTypeControlOptions: {
+        mapTypeIds: ["hybrid", "roadmap"]
+      },
+      rotateControl: false,
+      streetViewControl: false,
+      tilt: 0
+    });
   }
 
   // setMap() {
