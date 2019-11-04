@@ -21,10 +21,23 @@ class App extends Component {
 
     // Binding methods
     //this.setMap = this.setMap.bind(this);
+    this.resizeStuffYeah = this.resizeStuffYeah.bind(this);
+
+  }
+
+  resizeStuffYeah() {
+    const myOuter = document.getElementById('myouter');
+    console.log("draggin' yeah!");
+    let { height, width } = document.getElementById('myblock').getBoundingClientRect();
+    height -= 20;
+    width -= 20;
+    myOuter.style.height = width + 'px';
   }
 
   componentDidMount() {
-    const map = new google.maps.Map(document.getElementById('myblock'), {
+    const myBlock = document.getElementById('myblock');
+    const myOuter = document.getElementById('myouter');
+    const map = new google.maps.Map(myBlock, {
       center: {lat: -34.397, lng: 150.644},
       zoom: 8,
       clickableIcons: false,
@@ -37,6 +50,20 @@ class App extends Component {
       streetViewControl: false,
       tilt: 0
     });
+
+
+
+    const { height, width } = document.getElementById('boundsArea').getBoundingClientRect();
+    console.log(height, width);
+    myOuter.style.height = height / 2 + 'px';
+    myOuter.style.width = width / 2 + 'px';
+    myOuter.style.resize = "both";
+    myOuter.style.overflow = "hidden";
+
+    this.setState(Object.assign(
+      this.state,
+      {range: {x: height, y: width}}
+    ));
   }
 
   // setMap() {
@@ -91,7 +118,7 @@ class App extends Component {
 
     return (
       <div id="boundsContainer">
-        <div id="boundsArea"><div id="myblock"></div></div>
+        <div id="boundsArea"><div id="myouter" onClick={() => {this.resizeStuffYeah()}}><div id="myblock"></div></div></div>
         <div id="boundsOptions"></div>
       </div>
     );
