@@ -23,7 +23,7 @@
   min-width: 100px;
 }
 
-#boundsArea {
+#mapDisplayArea {
   position: absolute;
   left: 0;
   top: 0;
@@ -33,13 +33,14 @@
   max-width: calc(100% - 100px);
 }
 
-#myouter {
+#mapBorder {
   margin: 0 auto;
   width: 95%;
   height: 95%;
   position: absolute;
   top: 50%;
   left: 50%;
+  z-index: 9;
   background-color: #91cbc0;
   transform: translate(-50%, -50%);
   resize: both;
@@ -47,13 +48,18 @@
   /* transform: translateX(-50%); */
 }
 
-#myblock {
+#mapWrapper {
   margin: 0 auto;
   width: calc(100% - 20px);
   height: calc(100% - 20px);
   position: absolute;
+  z-index: 10;
   top: 50%;
   left: 50%;
   background-color: #2a2740;
   transform: translate(-50%, -50%);
+}
+
+:disabled {
+  background: gray;
 }
