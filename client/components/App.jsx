@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 const urlCreator = window.URL || window.webkitURL;
 
-const MAP_BORDER_WIDTH = 20;
+const MAP_BORDER_WIDTH = 25;
 
 function getInitialState() {
   return {
@@ -12,7 +12,7 @@ function getInitialState() {
     units: { width: 1, height: 1},
     resolution: 200,
     pixels: { width: false, height: false },
-    dimensions: { x: 100, y: 200 },
+    dimensions: { x: 0, y: 0 },
     range: { x: false, y: false },
 
     img: false // stores image data
@@ -25,81 +25,74 @@ class App extends Component {
     this.state = getInitialState();
 
     // Binding methods
-    //this.setMap = this.setMap.bind(this);
-    this.snapToRatio = this.snapToRatio.bind(this);
+    this.expandToFitRatio = this.expandToFitRatio.bind(this);
     this.updateRatio = this.updateRatio.bind(this);
     this.calculateMapResize = this.calculateMapResize.bind(this);
     this.shrinkToFitDisplayArea = this.shrinkToFitDisplayArea.bind(this);
     this.resizeMap = this.resizeMap.bind(this);
-    this.resizeMap2 = this.resizeMap2.bind(this);
+    this.resizeToFit = this.resizeToFit.bind(this);
+    this.stretchFromEmpty = this.stretchFromEmpty.bind(this);
+    this.snapToDimensions = this.snapToDimensions.bind(this);
   }
 
   updateRatio(width, height) {
-    return;
-    const updatedRatio = {
+    const ratio = {
       width: width ? width : this.state.ratio.width,
       height: height ? height : this.state.ratio.height,
     };
-    this.setState(Object.assign(
-      this.state,
-      {ratio: updatedRatio}
-    ));
-    this.snapToRatio();
+    const dimensions = this.expandToFitRatio(this.state.dimensions);
+    this.setState({ ratio, dimensions });
   }
 
-  snapToRatio() {
-    const frame = document.getElementById('mapBorder');
-    const myMap = document.getElementById('mapWrapper');
-    const bounds = document.getElementById('mapDisplayArea');
-    const { height: boundaryHeight, width: boundaryWidth } = bounds.getBoundingClientRect();
-    const { height, width } = myMap.getBoundingClientRect();
+  expandToFitRatio(dimensions) {
     const widthToHeight = this.state.ratio.width / this.state.ratio.height;
-    const x = this.state.dimensions.x;
-    const y = this.state.dimensions.y;
-
-    const updatedDimensions = this.shrinkToFitDisplayArea(
-      Math.max(y, x / widthToHeight),
-      Math.max(x, y * widthToHeight),
-      widthToHeight
-    );
-
-    //frame.style.width = updatedDimensions.x + 20 + 'px';
-    //frame.style.height = updatedDimensions.y + 20 + 'px';
-    this.setState(Object.assign(
-      this.state,
-      {dimensions: updatedDimensions}
-    ));
+    return this.resizeToFit({
+      x: Math.max(dimensions.x, dimensions.y * widthToHeight),
+      y: Math.max(dimensions.y, dimensions.x / widthToHeight)
+    });
   }
 
-  calculateMapResize(originalX, currentX, originalY, currentY, widthToHeight) {
-
-    console.log(originalX, currentX, originalY, currentY, widthToHeight);
+  calculateMapResize(x, y) {
     // Percent change in each dimension.
-    const dx = Math.abs(currentX - originalX) / originalX;
-    const dy = Math.abs(currentY - originalY) / originalY;
-    console.log("dx = " + dx, "dy = " + dy)
+    const dx = Math.abs(x - this.state.dimensions.x) / this.state.dimensions.x;
+    const dy = Math.abs(y - this.state.dimensions.y) / this.state.dimensions.y;
+    const widthToHeight = this.state.ratio.width / this.state.ratio.height;
+    console.log(dx, dy, x, y);
 
     // Resize height or width to match, depending on which was changed more
-    return this.shrinkToFitDisplayArea(
-      (dx <= dy) ? currentY : currentX / widthToHeight,
-      (dx >= dy) ? currentX : currentY * widthToHeight,
-      widthToHeight)
+    return this.resizeToFit({
+      x: (dx > dy) ? x : y * widthToHeight,
+      y: (dx <= dy) ? y : x / widthToHeight
+    });
   }
 
-  shrinkToFitDisplayArea(potentialHeight, potentialWidth, widthToHeight) {
-    const maxWidth = document.getElementById('mapDisplayArea').getBoundingClientRect().width-MAP_BORDER_WIDTH;
-    const maxHeight = document.getElementById('mapDisplayArea').getBoundingClientRect().height-MAP_BORDER_WIDTH;
-    console.log(potentialHeight, potentialWidth, maxHeight, maxWidth);
-    const widthOverflowPercent = (potentialWidth - maxWidth) / maxWidth;
-    const heightOverflowPercent = (potentialHeight - maxHeight) / maxHeight;
-    console.log(widthOverflowPercent);
-    console.log(heightOverflowPercent);
-    if (widthOverflowPercent <= 0 && heightOverflowPercent <= 0) {
-      console.log("no overflow");
-      return { y: potentialHeight, x: potentialWidth };
-    }
-    console.log("resizing to avoid overflow");
+  resizeToFit(dimensions) {
+    return this.shrinkToFitDisplayArea(this.stretchFromEmpty(dimensions));
+  }
 
+  stretchFromEmpty(dimensions) {
+    if (dimensions.x >= 1 && dimensions.y >= 1) return dimensions;
+    return { x: this.state.ratio.width, y: this.state.ratio.height };
+  }
+
+  shrinkToFitDisplayArea(dimensions) {
+    // Get dimensions of entire display area
+    const bounds = document.getElementById('mapDisplayArea');
+    const maxWidth = bounds.getBoundingClientRect().width - MAP_BORDER_WIDTH;
+    const maxHeight = bounds.getBoundingClientRect().height - MAP_BORDER_WIDTH;
+
+    const widthToHeight = this.state.ratio.width / this.state.ratio.height;
+
+    // Calculate how much overflow in each direction
+    const widthOverflowPercent = (dimensions.x - maxWidth) / maxWidth;
+    const heightOverflowPercent = (dimensions.y - maxHeight) / maxHeight;
+
+    if (widthOverflowPercent <= 0 && heightOverflowPercent <= 0) {
+      console.log("No overflow");
+      return dimensions;
+    }
+
+    console.log("Shrinking map to avoid overflow");
     if (widthOverflowPercent > heightOverflowPercent) {
       return { y: maxWidth / widthToHeight, x: maxWidth };
     } else {
@@ -108,35 +101,27 @@ class App extends Component {
   }
 
   resizeMap() {
-    const border = document.getElementById('mapBorder');
     const myMap = document.getElementById('mapWrapper');
     console.log("Resize triggered.");
+    console.log(this.state);
 
     const { height, width } = myMap.getBoundingClientRect();
-    const updatedDimensions = this.calculateMapResize(
-      this.state.dimensions.x,
-      width,
-      this.state.dimensions.y,
-      height,
-      this.state.ratio.width / this.state.ratio.height
-    );
-    // if (!updatedDimensions) return;
+    console.log("height = " + height, "width = " + width);
+    const updatedDimensions = this.calculateMapResize(width, height);
 
-    console.log(updatedDimensions);
-    this.setState(Object.assign(
-      this.state,
-      {dimensions: updatedDimensions}
-    ));
+    console.log("dimensions", updatedDimensions);
+    console.log(this.state.dimensions);
+    this.setState({ dimensions: updatedDimensions });
   }
 
-  resizeMap2(updatedDimensions) {
+  snapToDimensions() {
     const border = document.getElementById('mapBorder');
-    border.style.width = updatedDimensions.x + 20 + 'px';
-    border.style.height = updatedDimensions.y + 20 + 'px';
+    border.style.width = this.state.dimensions.x + MAP_BORDER_WIDTH + 'px';
+    border.style.height = this.state.dimensions.y + MAP_BORDER_WIDTH + 'px';
   }
 
-  shouldComponentUpdate() {
-    this.resizeMap2(this.state.dimensions);
+  componentDidUpdate() {
+    this.snapToDimensions();
   }
 
   componentDidMount() {
@@ -160,70 +145,18 @@ class App extends Component {
     console.log(height, width);
     mapBorder.style.height = height / 2 + 'px';
     mapBorder.style.width = width / 2 + 'px';
-    mapBorder.style.resize = this.state.lock ? "horizontal" : "both";
+    mapBorder.style.resize = "both";
     mapBorder.style.overflow = "auto";
 
-    this.snapToRatio();
-
-    // this.setState(Object.assign(
-    //   this.state,
-    //   {range: {x: height, y: width}}
-    // ));
+    if (this.state.lock) this.resizeMap();
   }
-
-  // setMap() {
-  //   console.log('get map in range: ', southPas);
-  //   const that = this; // loses reference to this when in post callback
-  //   fetch('/photo', {
-  //     method: 'POST',
-  //     headers: {
-  //       Accept: 'application/json',
-  //       'Content-Type': 'application/json',
-  //     },
-  //     body: JSON.stringify(southPas),
-  //   }).then(response => {
-  //     if (response.status >= 200 && response.status < 300) {
-  //       console.log(response)
-  //       response.blob().then(data => {
-  //         console.log(data);
-  //         that.setState(Object.assign(
-  //           that.state,
-  //           { img: data },
-  //         ));
-  //         return Promise.resolve();
-  //       })
-  //     }
-  //     return Promise.reject(response.statusText);
-  //   });
-  // }
 
   render() {
     console.log("App page rendering...")
 
-    // Unnecessary for now
-    // if (this.state.img) document.getElementById('mypic').src = urlCreator.createObjectURL(this.state.img);
-    // const mapWrapper = (
-    //   <div id="mapWrapper"></div>
-    // );
-    // const g = document.createElement('div');
-    // g.setAttribute("id", "mapWrapper");
-    // const map = new google.maps.Map(mapWrapper, {
-    //   center: {lat: -34.397, lng: 150.644},
-    //   zoom: 8,
-    //   clickableIcons: false,
-    //   fullscreenControl: false,
-    //   mapTypeControl: true,
-    //   mapTypeControlOptions: {
-    //     mapTypeIds: ["hybrid", "roadmap"]
-    //   },
-    //   rotateControl: false,
-    //   streetViewControl: false,
-    //   tilt: 0
-    // });
-
     return (
       <div id="boundsContainer">
-        <div id="mapDisplayArea" onMouseMove={() => {this.resizeMap()}}><div id="mapBorder" onClick={() => {this.resizeMap()}}><div id="mapWrapper"></div></div></div>
+        <div id="mapDisplayArea"><div id="mapBorder" onMouseUp={() => {this.resizeMap()}}><div id="mapWrapper"></div></div></div>
         <div id="boundsOptions">
           <div>width:</div>
           <input type="number" id="width" min="1" max="100" value={this.state.ratio.width} onInput={(event) => {this.updateRatio(event.target.value, false)}}></input>
@@ -250,12 +183,6 @@ class App extends Component {
         </div>
       </div>
     );
-
-    // return (
-    //   <div>
-    //     <h1>Hello!</h1>
-    //   </div>
-    // );
   }
 }
 
