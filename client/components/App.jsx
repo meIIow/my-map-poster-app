@@ -40,16 +40,16 @@ class App extends Component {
       width: width ? width : this.state.ratio.width,
       height: height ? height : this.state.ratio.height,
     };
-    const dimensions = this.expandToFitRatio(this.state.dimensions);
+    const dimensions = this.expandToFitRatio(this.state.dimensions, ratio);
     this.setState({ ratio, dimensions });
   }
 
-  expandToFitRatio(dimensions) {
-    const widthToHeight = this.state.ratio.width / this.state.ratio.height;
+  expandToFitRatio(dimensions, ratio) {
+    const widthToHeight = ratio.width / ratio.height;
     return this.resizeToFit({
       x: Math.max(dimensions.x, dimensions.y * widthToHeight),
       y: Math.max(dimensions.y, dimensions.x / widthToHeight)
-    });
+    }, ratio);
   }
 
   calculateMapResize(x, y) {
@@ -63,25 +63,25 @@ class App extends Component {
     return this.resizeToFit({
       x: (dx > dy) ? x : y * widthToHeight,
       y: (dx <= dy) ? y : x / widthToHeight
-    });
+    }, this.state.ratio);
   }
 
-  resizeToFit(dimensions) {
-    return this.shrinkToFitDisplayArea(this.stretchFromEmpty(dimensions));
+  resizeToFit(dimensions, ratio) {
+    return this.shrinkToFitDisplayArea(this.stretchFromEmpty(dimensions, ratio), ratio);
   }
 
-  stretchFromEmpty(dimensions) {
+  stretchFromEmpty(dimensions, ratio) {
     if (dimensions.x >= 1 && dimensions.y >= 1) return dimensions;
-    return { x: this.state.ratio.width, y: this.state.ratio.height };
+    return { x: ratio.width, y: ratio.height };
   }
 
-  shrinkToFitDisplayArea(dimensions) {
+  shrinkToFitDisplayArea(dimensions, ratio) {
     // Get dimensions of entire display area
     const bounds = document.getElementById('mapDisplayArea');
     const maxWidth = bounds.getBoundingClientRect().width - MAP_BORDER_WIDTH;
     const maxHeight = bounds.getBoundingClientRect().height - MAP_BORDER_WIDTH;
 
-    const widthToHeight = this.state.ratio.width / this.state.ratio.height;
+    const widthToHeight = ratio.width / ratio.height;
 
     // Calculate how much overflow in each direction
     const widthOverflowPercent = (dimensions.x - maxWidth) / maxWidth;
@@ -128,8 +128,8 @@ class App extends Component {
     const mapWrapper = document.getElementById('mapWrapper');
     const mapBorder = document.getElementById('mapBorder');
     const map = new google.maps.Map(mapWrapper, {
-      center: {lat: -34.397, lng: 150.644},
-      zoom: 8,
+      center: {lat:-33.8707972, lng: 151.2070504},
+      zoom: 13,
       clickableIcons: false,
       fullscreenControl: false,
       mapTypeControl: true,
@@ -140,6 +140,31 @@ class App extends Component {
       streetViewControl: false,
       tilt: 0
     });
+
+    const input = document.getElementById('pac-input');
+    const center = document.getElementById('re-center');
+    const autocomplete = new google.maps.places.Autocomplete(input);
+    // Set the data fields to return when the user selects a place.
+    autocomplete.setFields(['geometry.location', 'name']);
+
+    autocomplete.addListener('place_changed', function() {
+      var place = autocomplete.getPlace();
+      if (!place.geometry.location) {
+        return window.alert(`No details available for input: ${place.name}`);
+      }
+      map.setCenter(place.geometry.location);
+    });
+
+    center.addEventListener('click', function(e) {
+      console.log('something');
+      //if (e.key !== 'Enter') return;
+      var place = autocomplete.getPlace();
+      if (!place.geometry.location) {
+        return window.alert(`No details available for input: ${place.name}`);
+      }
+      map.setCenter(place.geometry.location);
+    });
+
 
     const { height, width } = document.getElementById('mapDisplayArea').getBoundingClientRect();
     console.log(height, width);
@@ -158,6 +183,8 @@ class App extends Component {
       <div id="boundsContainer">
         <div id="mapDisplayArea"><div id="mapBorder" onMouseUp={() => {this.resizeMap()}}><div id="mapWrapper"></div></div></div>
         <div id="boundsOptions">
+          <input id="pac-input" type="text" placeholder="Enter a location"></input>
+          <input id="re-center" type="button" value="Re-Center Map"></input>
           <div>width:</div>
           <input type="number" id="width" min="1" max="100" value={this.state.ratio.width} onInput={(event) => {this.updateRatio(event.target.value, false)}}></input>
           <div>height:</div>
