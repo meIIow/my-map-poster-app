@@ -7,7 +7,7 @@ function getInitialState() {
   return {
     phase: 0,
     bounds: false,
-    lock: true,
+    lock: false,
     ratio: { width: 3, height: 2 },
     units: { width: 1, height: 1},
     resolution: 200,
@@ -33,6 +33,13 @@ class App extends Component {
     this.resizeToFit = this.resizeToFit.bind(this);
     this.stretchFromEmpty = this.stretchFromEmpty.bind(this);
     this.snapToDimensions = this.snapToDimensions.bind(this);
+  }
+
+  toggleRatioLock() {
+    const lock = document.getElementById('lock-ratio');
+    if (!lock.checked) return this.setState({ lock: false });
+    const dimensions = this.expandToFitRatio(this.state.dimensions, this.state.ratio);
+    this.setState({ lock: true, dimensions });
   }
 
   updateRatio(width, height) {
@@ -107,6 +114,7 @@ class App extends Component {
 
     const { height, width } = myMap.getBoundingClientRect();
     console.log("height = " + height, "width = " + width);
+    if (!this.state.lock) return this.setState({ dimensions: {x: width, y: height} });
     const updatedDimensions = this.calculateMapResize(width, height);
 
     console.log("dimensions", updatedDimensions);
@@ -191,7 +199,7 @@ class App extends Component {
           <input type="number" id="height" min="1" max="100" value={this.state.ratio.height} onInput={(event) => {this.updateRatio(false, event.target.value)}}></input>
           <div>lock ratio:</div>
           <label class="switch">
-            <input type="checkbox"></input>
+            <input id="lock-ratio" type="checkbox" onClick={() => this.toggleRatioLock()}></input>
             <span class="slider round"></span>
           </label>
           <div>width units:</div>

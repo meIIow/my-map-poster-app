@@ -45,6 +45,8 @@
   transform: translate(-50%, -50%);
   resize: both;
   overflow: hidden;
+  max-height: 100%;
+  max-width: 100%;
   /* transform: translateX(-50%); */
 }
 
