@@ -8,6 +8,8 @@ function getInitialState() {
     phase: 0,
     bounds: false,
     lock: false,
+    mult: {ratio: 1, dimensions: 1},
+    withUnits: false,
     ratio: { width: 3, height: 2 },
     units: { width: 1, height: 1},
     resolution: 200,
@@ -33,11 +35,13 @@ class App extends Component {
     this.resizeToFit = this.resizeToFit.bind(this);
     this.stretchFromEmpty = this.stretchFromEmpty.bind(this);
     this.snapToDimensions = this.snapToDimensions.bind(this);
+    this.setUnits = this.setUnits.bind(this);
+    this.setWithUnits = this.setWithUnits.bind(this);
   }
 
   toggleRatioLock() {
     const lock = document.getElementById('lock-ratio');
-    if (!lock.checked) return this.setState({ lock: false });
+    if (this.state.lock) return this.setState({ lock: false });
     const dimensions = this.expandToFitRatio(this.state.dimensions, this.state.ratio);
     this.setState({ lock: true, dimensions });
   }
@@ -71,6 +75,17 @@ class App extends Component {
       x: (dx > dy) ? x : y * widthToHeight,
       y: (dx <= dy) ? y : x / widthToHeight
     }, this.state.ratio);
+  }
+
+  setUnits(width, height) {
+    const ratioMult = (width !== null) ? width / this.state.ratio.width : height / this.state.ratio.height;
+    const dimensionMult = (width !== null) ? width / this.state.dimensions.x : height / this.state.dimensions.y;
+    if (!this.state.lock) return this.setState({mult: {ratio: this.state.mult.ratio, dimensions: dimensionMult}});
+    this.setState({mult: {dimensions: this.state.mult.dimensions, ratio: ratioMult}});
+  }
+
+  setWithUnits(boo) {
+    this.setState({withUnits: boo});
   }
 
   resizeToFit(dimensions, ratio) {
@@ -181,7 +196,7 @@ class App extends Component {
     mapBorder.style.resize = "both";
     mapBorder.style.overflow = "auto";
 
-    if (this.state.lock) this.resizeMap();
+    this.resizeMap();
   }
 
   render() {
@@ -194,23 +209,27 @@ class App extends Component {
           <input id="pac-input" type="text" placeholder="Enter a location"></input>
           <input id="re-center" type="button" value="Re-Center Map"></input>
           <div>width:</div>
-          <input type="number" id="width" min="1" max="100" value={this.state.ratio.width} onInput={(event) => {this.updateRatio(event.target.value, false)}}></input>
+          <input type="number" id="width" min="1" value={this.state.ratio.width} onInput={(event) => {this.updateRatio(event.target.value, false)}}></input>
           <div>height:</div>
-          <input type="number" id="height" min="1" max="100" value={this.state.ratio.height} onInput={(event) => {this.updateRatio(false, event.target.value)}}></input>
+          <input type="number" id="height" min="1" value={this.state.ratio.height} onInput={(event) => {this.updateRatio(false, event.target.value)}}></input>
           <div>lock ratio:</div>
           <label class="switch">
-            <input id="lock-ratio" type="checkbox" onClick={() => this.toggleRatioLock()}></input>
+            <input id="lock-ratio" type="checkbox" value = {this.state.lock} onClick={() => this.toggleRatioLock()}></input>
             <span class="slider round"></span>
           </label>
-          <div>width units:</div>
-          <input type="number" id="width-units" min="1" max="100"></input>
-          <div>height units:</div>
-          <input type="number" id="height-units" min="1" max="100"></input>
-          <div>lock ratio:</div>
-          <label class="switch">
-            <input type="checkbox"></input>
-            <span class="slider round"></span>
-          </label>
+          <div class="tab">
+            <button class={`tablinks${this.state.withUnits ? ' active' : ''}`} onClick={() => this.setWithUnits(true)}>Units & Resolution</button>
+            <button class={`tablinks${!this.state.withUnits ? ' active' : ''}`} onClick={() => this.setWithUnits(false)}>Pixel Dimensions</button>
+          </div>
+          <div>
+            <div class="halfsies">width units:
+              <input type="number" class="units" id="width-units" min="0" onInput={(e)=> this.setUnits(e.target.value, null)} value={(this.state.lock) ? this.state.ratio.width * this.state.mult.ratio : this.state.dimensions.x * this.state.mult.dimensions}></input>
+            </div>
+            <div class="halfsies">height units:
+              <input type="number" class="units" id="height-units" min="0" onInput={(e)=> this.setUnits(null, e.target.value)} value={(this.state.lock) ? this.state.ratio.height * this.state.mult.ratio : this.state.dimensions.y * this.state.mult.dimensions}></input>
+            </div>
+            <div>Pixel Density:<input type="number" min="0" step="50"></input></div>
+          </div>
           <div>width-pixels:</div>
           <input type="number" disabled="disabled" id="width-pixels" min="1"></input>
           <div>height-pixels:</div>
