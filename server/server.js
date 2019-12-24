@@ -31,11 +31,11 @@ const getMapPoster = async (req, res, next) => {
   const border = Border.fromLatLng(
     req.body.northWestLatLng,
     req.body.southEastLatLng,
-  ).fitToDimensions(600, 600, true); // Small value for experimenting.
+  ).fitToDimensions(3600, 3600, true); // Small value for experimenting.
 
   const request = new StaticMapHttpRequest(apiKey);
   const image = new PosterImage(border.height, border.width);
-  await image.overlay(
+  await image.batchOverlay(
     Tile.generateBorderSet(border).map(tile => {
       return { ...tile, url: request.generateImageUrl(tile) };
     }));
