@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 const urlCreator = window.URL || window.webkitURL;
 
 const MAP_BORDER_WIDTH = 25;
+let myMap;
 
 function getInitialState() {
   return {
@@ -37,6 +38,36 @@ class App extends Component {
     this.setUnits = this.setUnits.bind(this);
     this.setWithUnits = this.setWithUnits.bind(this);
     this.updateResolution = this.updateResolution.bind(this);
+    this.updatePixels = this.updatePixels.bind(this);
+    this.submit = this.submit.bind(this);
+  }
+
+  submit() {
+    const url = '/photo';
+    const x = myMap.getBounds();
+    const myBounds = {
+      northWestLatLng: {lat: x.getNorthEast().lat(), lng: x.getSouthWest().lng()},
+      southEastLatLng: {lat: x.getSouthWest().lat(), lng: x.getNorthEast().lng()},
+    }
+
+    fetch(url, {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(myBounds),
+    }).then(response => {
+      if (response.status >= 200 && response.status < 300) {
+        console.log(response)
+        response.blob().then(data => {
+          console.log(data);
+          document.getElementById('mypic').src = urlCreator.createObjectURL(data);
+          return Promise.resolve();
+        })
+      }
+      return Promise.reject(response.statusText);
+    });
   }
 
   toggleRatioLock() {
@@ -174,6 +205,7 @@ class App extends Component {
       streetViewControl: false,
       tilt: 0
     });
+    myMap = map;
 
     const input = document.getElementById('pac-input');
     const center = document.getElementById('re-center');
@@ -215,6 +247,7 @@ class App extends Component {
 
     return (
       <div id="boundsContainer">
+        <div><img id='mypic'></img></div>
         <div id="mapDisplayArea"><div id="mapBorder" onMouseUp={() => {this.resizeMap()}}><div id="mapWrapper"></div></div></div>
         <div id="boundsOptions">
           <input id="pac-input" type="text" placeholder="Enter a location"></input>
@@ -245,6 +278,7 @@ class App extends Component {
           <input type="number" disabled={this.state.withUnits} id="width-pixels" min="1" value={Math.round((this.state.lock) ? this.state.ratio.width * this.state.mult.ratio  * this.state.resolution : this.state.dimensions.x * this.state.mult.dimensions * this.state.resolution)} onInput={(e)=> this.updatePixels(e.target.value, null)}></input>
           <div>height-pixels:</div>
           <input type="number" disabled={this.state.withUnits} id="height-pixels" min="1" value={Math.round((this.state.lock) ? this.state.ratio.height * this.state.mult.ratio * this.state.resolution : this.state.dimensions.y * this.state.mult.dimensions * this.state.resolution)} onInput={(e)=> this.updatePixels(null, e.target.value)}></input>
+          <div><button class="tablinks" onClick={() => this.submit()}>Get It!!</button></div>
         </div>
       </div>
     );
