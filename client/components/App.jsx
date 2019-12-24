@@ -37,6 +37,7 @@ class App extends Component {
     this.snapToDimensions = this.snapToDimensions.bind(this);
     this.setUnits = this.setUnits.bind(this);
     this.setWithUnits = this.setWithUnits.bind(this);
+    this.updateResolution = this.updateResolution.bind(this);
   }
 
   toggleRatioLock() {
@@ -44,6 +45,10 @@ class App extends Component {
     if (this.state.lock) return this.setState({ lock: false });
     const dimensions = this.expandToFitRatio(this.state.dimensions, this.state.ratio);
     this.setState({ lock: true, dimensions });
+  }
+
+  updateResolution(resolution) {
+    this.setState({resolution});
   }
 
   updateRatio(width, height) {
@@ -228,7 +233,7 @@ class App extends Component {
             <div class="halfsies">height units:
               <input type="number" class="units" id="height-units" min="0" onInput={(e)=> this.setUnits(null, e.target.value)} value={(this.state.lock) ? this.state.ratio.height * this.state.mult.ratio : this.state.dimensions.y * this.state.mult.dimensions}></input>
             </div>
-            <div>Pixel Density:<input type="number" min="0" step="50"></input></div>
+            <div>Pixel Density:<input type="number" value={this.state.resolution} min="0" step="50" onInput={(e)=> this.updateResolution(e.target.value)}></input></div>
           </div>
           <div>width-pixels:</div>
           <input type="number" disabled="disabled" id="width-pixels" min="1"></input>
