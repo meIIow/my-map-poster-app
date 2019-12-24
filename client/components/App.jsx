@@ -13,7 +13,6 @@ function getInitialState() {
     ratio: { width: 3, height: 2 },
     units: { width: 1, height: 1},
     resolution: 200,
-    pixels: { width: false, height: false },
     dimensions: { x: 0, y: 0 },
     range: { x: false, y: false },
 
@@ -45,6 +44,13 @@ class App extends Component {
     if (this.state.lock) return this.setState({ lock: false });
     const dimensions = this.expandToFitRatio(this.state.dimensions, this.state.ratio);
     this.setState({ lock: true, dimensions });
+  }
+
+  updatePixels(width, height) {
+    const ratioMult = (width !== null) ? width / this.state.ratio.width / this.state.resolution: height / this.state.ratio.height / this.state.resolution;
+    const dimensionMult = (width !== null) ? width / this.state.dimensions.x / this.state.resolution : height / this.state.dimensions.y / this.state.resolution;
+    if (!this.state.lock) return this.setState({mult: {ratio: this.state.mult.ratio, dimensions: dimensionMult}});
+    this.setState({mult: {dimensions: this.state.mult.dimensions, ratio: ratioMult}});
   }
 
   updateResolution(resolution) {
@@ -228,17 +234,17 @@ class App extends Component {
           </div>
           <div>
             <div class="halfsies">width units:
-              <input type="number" class="units" id="width-units" min="0" onInput={(e)=> this.setUnits(e.target.value, null)} value={(this.state.lock) ? this.state.ratio.width * this.state.mult.ratio : this.state.dimensions.x * this.state.mult.dimensions}></input>
+              <input type="number" disabled={!this.state.withUnits} class="units" id="width-units" min="0" onInput={(e)=> this.setUnits(e.target.value, null)} value={(this.state.lock) ? this.state.ratio.width * this.state.mult.ratio : this.state.dimensions.x * this.state.mult.dimensions}></input>
             </div>
             <div class="halfsies">height units:
-              <input type="number" class="units" id="height-units" min="0" onInput={(e)=> this.setUnits(null, e.target.value)} value={(this.state.lock) ? this.state.ratio.height * this.state.mult.ratio : this.state.dimensions.y * this.state.mult.dimensions}></input>
+              <input type="number" disabled={!this.state.withUnits} class="units" id="height-units" min="0" onInput={(e)=> this.setUnits(null, e.target.value)} value={(this.state.lock) ? this.state.ratio.height * this.state.mult.ratio : this.state.dimensions.y * this.state.mult.dimensions}></input>
             </div>
-            <div>Pixel Density:<input type="number" value={this.state.resolution} min="0" step="50" onInput={(e)=> this.updateResolution(e.target.value)}></input></div>
+            <div>Pixel Density:<input type="number" disabled={!this.state.withUnits} value={this.state.resolution} min="0" step="50" onInput={(e)=> this.updateResolution(e.target.value)}></input></div>
           </div>
           <div>width-pixels:</div>
-          <input type="number" disabled="disabled" id="width-pixels" min="1"></input>
+          <input type="number" disabled={this.state.withUnits} id="width-pixels" min="1" value={Math.round((this.state.lock) ? this.state.ratio.width * this.state.mult.ratio  * this.state.resolution : this.state.dimensions.x * this.state.mult.dimensions * this.state.resolution)} onInput={(e)=> this.updatePixels(e.target.value, null)}></input>
           <div>height-pixels:</div>
-          <input type="number" disabled="disabled" id="height-pixels" min="1"></input>
+          <input type="number" disabled={this.state.withUnits} id="height-pixels" min="1" value={Math.round((this.state.lock) ? this.state.ratio.height * this.state.mult.ratio * this.state.resolution : this.state.dimensions.y * this.state.mult.dimensions * this.state.resolution)} onInput={(e)=> this.updatePixels(null, e.target.value)}></input>
         </div>
       </div>
     );
