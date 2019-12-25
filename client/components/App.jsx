@@ -45,9 +45,11 @@ class App extends Component {
   submit() {
     const url = '/photo';
     const x = myMap.getBounds();
-    const myBounds = {
+    const parcel = {
       northWestLatLng: {lat: x.getNorthEast().lat(), lng: x.getSouthWest().lng()},
       southEastLatLng: {lat: x.getSouthWest().lat(), lng: x.getNorthEast().lng()},
+      height: (this.state.lock) ? this.state.ratio.height * this.state.mult.ratio * this.state.resolution :  this.state.dimensions.y * this.state.mult.dimensions,
+      width: (this.state.lock) ? this.state.ratio.width * this.state.mult.ratio * this.state.resolution :  this.state.dimensions.x * this.state.mult.dimensions,
     }
 
     fetch(url, {
@@ -56,7 +58,7 @@ class App extends Component {
         Accept: 'application/json',
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(myBounds),
+      body: JSON.stringify(parcel),
     }).then(response => {
       if (response.status >= 200 && response.status < 300) {
         console.log(response)
@@ -79,7 +81,7 @@ class App extends Component {
 
   updatePixels(width, height) {
     const ratioMult = (width !== null) ? width / this.state.ratio.width / this.state.resolution: height / this.state.ratio.height / this.state.resolution;
-    const dimensionMult = (width !== null) ? width / this.state.dimensions.x / this.state.resolution : height / this.state.dimensions.y / this.state.resolution;
+    const dimensionMult = (width !== null) ? width / this.state.dimensions.x : height / this.state.dimensions.y;
     if (!this.state.lock) return this.setState({mult: {ratio: this.state.mult.ratio, dimensions: dimensionMult}});
     this.setState({mult: {dimensions: this.state.mult.dimensions, ratio: ratioMult}});
   }
@@ -275,9 +277,9 @@ class App extends Component {
             <div>Pixel Density:<input type="number" disabled={!this.state.withUnits} value={this.state.resolution} min="0" step="50" onInput={(e)=> this.updateResolution(e.target.value)}></input></div>
           </div>
           <div>width-pixels:</div>
-          <input type="number" disabled={this.state.withUnits} id="width-pixels" min="1" value={Math.round((this.state.lock) ? this.state.ratio.width * this.state.mult.ratio  * this.state.resolution : this.state.dimensions.x * this.state.mult.dimensions * this.state.resolution)} onInput={(e)=> this.updatePixels(e.target.value, null)}></input>
+          <input type="number" disabled={this.state.withUnits} id="width-pixels" min="1" value={Math.round((this.state.lock) ? this.state.ratio.width * this.state.mult.ratio  * this.state.resolution : this.state.dimensions.x * this.state.mult.dimensions)} onInput={(e)=> this.updatePixels(e.target.value, null)}></input>
           <div>height-pixels:</div>
-          <input type="number" disabled={this.state.withUnits} id="height-pixels" min="1" value={Math.round((this.state.lock) ? this.state.ratio.height * this.state.mult.ratio * this.state.resolution : this.state.dimensions.y * this.state.mult.dimensions * this.state.resolution)} onInput={(e)=> this.updatePixels(null, e.target.value)}></input>
+          <input type="number" disabled={this.state.withUnits} id="height-pixels" min="1" value={Math.round((this.state.lock) ? this.state.ratio.height * this.state.mult.ratio * this.state.resolution : this.state.dimensions.y * this.state.mult.dimensions)} onInput={(e)=> this.updatePixels(null, e.target.value)}></input>
           <div><button class="tablinks" onClick={() => this.submit()}>Get It!!</button></div>
         </div>
       </div>

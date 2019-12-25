@@ -31,7 +31,7 @@ const getMapPoster = async (req, res, next) => {
   const border = Border.fromLatLng(
     req.body.northWestLatLng,
     req.body.southEastLatLng,
-  ).fitToDimensions(3600, 3600, true); // Small value for experimenting.
+  ).fitToDimensions(req.body.height, req.body.width, true); // Small value for experimenting.
 
   const request = new StaticMapHttpRequest(apiKey);
   const image = new PosterImage(border.height, border.width);
