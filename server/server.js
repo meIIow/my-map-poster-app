@@ -5,6 +5,8 @@ const path = require("path");
 const fetch = require('node-fetch');
 const bodyParser = require('body-parser');
 const Border = require('./map/Border');
+const Latitude = require('./map/coordinates/Latitude');
+const Longitude = require('./map/coordinates/Longitude');
 const PosterImage = require('./map/PosterImage');
 const StaticMapHttpRequest = require('./request/StaticMapHttpRequest');
 const Tile = require('./map/Tile.js')
@@ -31,7 +33,7 @@ const getMapPoster = async (req, res, next) => {
   const border = Border.fromLatLng(
     req.body.northWestLatLng,
     req.body.southEastLatLng,
-  ).fitToDimensions(req.body.height, req.body.width, true); // Small value for experimenting.
+  ).fitToDimensions(req.body.height, req.body.width, true);
 
   const request = new StaticMapHttpRequest(apiKey);
   const image = new PosterImage(border.height, border.width);
@@ -45,5 +47,40 @@ const getMapPoster = async (req, res, next) => {
   res.send(image.buffer);
 }
 
+const getFrameData = async (req, res, next) => {
+  const border = Border.fromLatLng(
+    req.body.northWestLatLng,
+    req.body.southEastLatLng,
+  ).fitToDimensions(req.body.height, req.body.width, true);
+
+  res.json({
+    size: Tile.generateBorderSet(border),
+    zoom: border.north.zoom,
+    height: border.height,
+    width: border.width,
+    bounds: border.convert(Latitude.from, Longitude.from)
+  });
+}
+
+const getPreviewTile = async (req, res, next) => {
+  console.log(req.body);
+
+  const tile = Tile.generatPreviewTile(req.lat, req.lng, req.height, req.width, req.zoom);
+  const request = new StaticMapHttpRequest(apiKey);
+  const image = new PosterImage(tile.height, tile.width);
+
+  await image.batchOverlay(
+    [{ ...tile, url: request.generateImageUrl(tile) }]);
+
+  res.contentType('png');
+  res.send(image.buffer);
+}
+
 // Serve photo
 app.post('/photo', getMapPoster);
+
+// Calculate frame data
+app.post('/border', getFrameData);
+
+// Serve preview tile
+app.post('/preview', getPreviewTile);

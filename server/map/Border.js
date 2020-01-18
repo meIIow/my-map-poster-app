@@ -128,6 +128,16 @@ class Border {
     }
     return pixelBorder;
   }
+
+  // Generates new border of Pixel coordinates that contain current border
+  // coordinates and is at least pixelHeight tall, pixelWidth wide, and fits the
+  // given height/width ratio
+  fitToRatio(pixelHeight, pixelWidth, ratio) {
+    const zoom = this.calculateMinimumZoom(pixelHeight, pixelWidth, lockRatio);
+    const pixelBorder =
+      this.convert(coordinate => Pixel.from(coordinate, zoom)).round();
+    return pixelBorder.stretchToMatch(ratio);
+  }
 }
 
 // Asserts that all parameters adhere to the coordinate 'interface'.

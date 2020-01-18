@@ -3,6 +3,7 @@ const urlCreator = window.URL || window.webkitURL;
 
 const MAP_BORDER_WIDTH = 25;
 let myMap;
+let bounds;
 
 function getInitialState() {
   return {
@@ -40,6 +41,68 @@ class App extends Component {
     this.updateResolution = this.updateResolution.bind(this);
     this.updatePixels = this.updatePixels.bind(this);
     this.submit = this.submit.bind(this);
+    this.getInfo = this.getInfo.bind(this);
+  }
+
+  bind() {
+    myMap.setOptions({
+      restriction: {
+        latLngBounds: myMap.getBounds(),
+        strictBounds: true
+      }
+    });
+  }
+
+  getInfo() {
+    const url = '/border';
+    const x = myMap.getBounds();
+    bounds = x;
+    const parcel = {
+      northWestLatLng: {lat: x.getNorthEast().lat(), lng: x.getSouthWest().lng()},
+      southEastLatLng: {lat: x.getSouthWest().lat(), lng: x.getNorthEast().lng()},
+      height: (this.state.lock) ? this.state.ratio.height * this.state.mult.ratio * this.state.resolution :  this.state.dimensions.y * this.state.mult.dimensions,
+      width: (this.state.lock) ? this.state.ratio.width * this.state.mult.ratio * this.state.resolution :  this.state.dimensions.x * this.state.mult.dimensions,
+    }
+
+    fetch(url, {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(parcel),
+    }).then(response => {
+      if (response.status >= 200 && response.status < 300) {
+        console.log(response);
+        return response.json();
+      }
+      return Promise.reject(response.statusText);
+    }).then((json) => {
+      console.log(json);
+      const b = json.bounds;
+      const mapWrapper = document.getElementById('mapWrapper');
+      const mapBorder = document.getElementById('mapBorder');
+      mapBorder.style.width = '100%';
+      mapBorder.style.height = '100%';
+      mapWrapper.style.width = '100%';
+      mapWrapper.style.height = '100%';
+      mapWrapper.style.maxWidth = json.width + 'px';
+      mapWrapper.style.maxHeight = json.height + 'px';
+      mapBorder.style.resize = 'none';
+      this.state.phase = 1;
+
+      myMap.setOptions({
+        restriction: {
+          latLngBounds: new google.maps.LatLngBounds(
+            new google.maps.LatLng(b.south.value, b.west.value),
+            new google.maps.LatLng(b.north.value, b.east.value)),
+          strictBounds: true
+        },
+        zoom: json.zoom,
+        minZoom: json.zoom,
+        maxZoom: json.zoom,
+      });
+    });
   }
 
   submit() {
@@ -167,6 +230,7 @@ class App extends Component {
   }
 
   resizeMap() {
+    if (this.state.phase !== 0) return;
     const myMap = document.getElementById('mapWrapper');
     console.log("Resize triggered.");
     console.log(this.state);
@@ -182,6 +246,7 @@ class App extends Component {
   }
 
   snapToDimensions() {
+    if (this.state.phase !== 0) return;
     const border = document.getElementById('mapBorder');
     border.style.width = this.state.dimensions.x + MAP_BORDER_WIDTH + 'px';
     border.style.height = this.state.dimensions.y + MAP_BORDER_WIDTH + 'px';
@@ -280,7 +345,7 @@ class App extends Component {
           <input type="number" disabled={this.state.withUnits} id="width-pixels" min="1" value={Math.round((this.state.lock) ? this.state.ratio.width * this.state.mult.ratio  * this.state.resolution : this.state.dimensions.x * this.state.mult.dimensions)} onInput={(e)=> this.updatePixels(e.target.value, null)}></input>
           <div>height-pixels:</div>
           <input type="number" disabled={this.state.withUnits} id="height-pixels" min="1" value={Math.round((this.state.lock) ? this.state.ratio.height * this.state.mult.ratio * this.state.resolution : this.state.dimensions.y * this.state.mult.dimensions)} onInput={(e)=> this.updatePixels(null, e.target.value)}></input>
-          <div><button class="tablinks" onClick={() => this.submit()}>Get It!!</button></div>
+          <div><button class="tablinks" onClick={() => this.getInfo()}>Get It!!</button></div>
         </div>
       </div>
     );

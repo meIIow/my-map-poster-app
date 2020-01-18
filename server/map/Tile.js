@@ -55,6 +55,11 @@ class Tile {
 
     return Tile.generateTileSet(heightOffset, widthOffset, zoom);
   }
+
+  // Convenience wrapper to create a center preview tile
+  static generatPreviewTile(lat, lng, maxHeight, maxWidth, zoom) {
+    return new Tile(lat, lng, Math.min(maxHeight, MAX_PIXELS), Math.min(maxWidth, MAX_PIXELS), 0, 0, zoom);
+  }
 }
 
 module.exports = Tile;
