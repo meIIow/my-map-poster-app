@@ -4,6 +4,7 @@ const urlCreator = window.URL || window.webkitURL;
 const MAP_BORDER_WIDTH = 25;
 let myMap;
 let bounds;
+let center;
 
 function getInitialState() {
   return {
@@ -42,6 +43,8 @@ class App extends Component {
     this.updatePixels = this.updatePixels.bind(this);
     this.submit = this.submit.bind(this);
     this.getInfo = this.getInfo.bind(this);
+    this.infoOrSample = this.infoOrSample.bind(this);
+    this.getSample = this.getSample.bind(this);
   }
 
   bind() {
@@ -53,9 +56,53 @@ class App extends Component {
     });
   }
 
+  infoOrSample() {
+    console.log("xyz");
+    if (this.state.phase === 0) return this.getInfo();
+    this.getSample();
+  }
+
+  getSample() {
+    const url = '/preview';
+    const x = myMap.getCenter();
+    console.log(x.lat(), x.lng(), center.lat(), center.lng());
+
+    const parcel = {
+      lat: center.lat(),
+      lng: center.lng(),
+      height: this.state.bounds.height,
+      width:  this.state.bounds.width,
+      zoom: this.state.bounds.zoom,
+    };
+    console.log("abc");
+    fetch(url, {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(parcel),
+    }).then(response => {
+      if (response.status >= 200 && response.status < 300) {
+        console.log(response)
+        response.blob().then(data => {
+          console.log("data", data);
+          document.getElementById('mypic').src = urlCreator.createObjectURL(data);
+          const mapBorder = document.getElementById('mapBorder');
+          mapBorder.style.visibility = "hidden";
+          return Promise.resolve();
+        });
+      }
+      console.log("prollem");
+      return Promise.reject(response.statusText);
+    });
+  }
+
   getInfo() {
     const url = '/border';
     const x = myMap.getBounds();
+    center = myMap.getCenter();
+
     bounds = x;
     const parcel = {
       northWestLatLng: {lat: x.getNorthEast().lat(), lng: x.getSouthWest().lng()},
@@ -89,8 +136,7 @@ class App extends Component {
       mapWrapper.style.maxWidth = json.width + 'px';
       mapWrapper.style.maxHeight = json.height + 'px';
       mapBorder.style.resize = 'none';
-      this.state.phase = 1;
-
+      console.log(parcel, json.bounds);
       myMap.setOptions({
         restriction: {
           latLngBounds: new google.maps.LatLngBounds(
@@ -102,6 +148,7 @@ class App extends Component {
         minZoom: json.zoom,
         maxZoom: json.zoom,
       });
+      this.setState({bounds: json, phase: 1});
     });
   }
 
@@ -314,8 +361,7 @@ class App extends Component {
 
     return (
       <div id="boundsContainer">
-        <div><img id='mypic'></img></div>
-        <div id="mapDisplayArea"><div id="mapBorder" onMouseUp={() => {this.resizeMap()}}><div id="mapWrapper"></div></div></div>
+        <div id="mapDisplayArea"><div><img id='mypic'></img></div><div id="mapBorder" onMouseUp={() => {this.resizeMap()}}><div id="mapWrapper"></div></div></div>
         <div id="boundsOptions">
           <input id="pac-input" type="text" placeholder="Enter a location"></input>
           <input id="re-center" type="button" value="Re-Center Map"></input>
@@ -345,7 +391,7 @@ class App extends Component {
           <input type="number" disabled={this.state.withUnits} id="width-pixels" min="1" value={Math.round((this.state.lock) ? this.state.ratio.width * this.state.mult.ratio  * this.state.resolution : this.state.dimensions.x * this.state.mult.dimensions)} onInput={(e)=> this.updatePixels(e.target.value, null)}></input>
           <div>height-pixels:</div>
           <input type="number" disabled={this.state.withUnits} id="height-pixels" min="1" value={Math.round((this.state.lock) ? this.state.ratio.height * this.state.mult.ratio * this.state.resolution : this.state.dimensions.y * this.state.mult.dimensions)} onInput={(e)=> this.updatePixels(null, e.target.value)}></input>
-          <div><button class="tablinks" onClick={() => this.getInfo()}>Get It!!</button></div>
+          <div><button class="tablinks" onClick={() => this.infoOrSample()}>Get It!!</button></div>
         </div>
       </div>
     );

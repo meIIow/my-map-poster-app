@@ -23,7 +23,7 @@ class StaticMapHttpRequest {
     let request = ENDPOINT;
     request += 'center=' + image.latitude + ',' + image.longitude;
     request += '&zoom=' + image.zoom;
-    request += '&size=' + image.height + 'x' + image.width;
+    request += '&size=' + image.width + 'x' + image.height;
     if (this.style) request += '&style=' + this.style;
     request += '&key=' + this.key;
     return request;

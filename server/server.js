@@ -65,12 +65,17 @@ const getFrameData = async (req, res, next) => {
 const getPreviewTile = async (req, res, next) => {
   console.log(req.body);
 
-  const tile = Tile.generatPreviewTile(req.lat, req.lng, req.height, req.width, req.zoom);
+  const tile = Tile.generatPreviewTile(req.body.lat, req.body.lng, req.body.height, req.body.width, req.body.zoom);
   const request = new StaticMapHttpRequest(apiKey);
   const image = new PosterImage(tile.height, tile.width);
+  image.context.fillStyle = 'red';
+  image.context.fillRect(0, 0, tile.width,tile.height);
 
+  console.log("tile", tile);
   await image.batchOverlay(
     [{ ...tile, url: request.generateImageUrl(tile) }]);
+
+    console.log(image.buffer);
 
   res.contentType('png');
   res.send(image.buffer);
