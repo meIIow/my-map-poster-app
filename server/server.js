@@ -65,7 +65,7 @@ const getFrameData = async (req, res, next) => {
 const getPreviewTile = async (req, res, next) => {
   console.log(req.body);
 
-  const tile = Tile.generatPreviewTile(req.body.lat, req.body.lng, req.body.height, req.body.width, req.body.zoom);
+  const tile = Tile.generatePreviewTile(req.body.lat, req.body.lng, req.body.height, req.body.width, req.body.zoom);
   const request = new StaticMapHttpRequest(apiKey);
   const image = new PosterImage(tile.height, tile.width);
   image.context.fillStyle = 'red';

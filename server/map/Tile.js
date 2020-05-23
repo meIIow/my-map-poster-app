@@ -57,7 +57,7 @@ class Tile {
   }
 
   // Convenience wrapper to create a center preview tile
-  static generatPreviewTile(lat, lng, maxHeight, maxWidth, zoom) {
+  static generatePreviewTile(lat, lng, maxHeight, maxWidth, zoom) {
     console.log(lat, lng);
     return new Tile(lat, lng, Math.min(maxHeight, MAX_PIXELS), Math.min(maxWidth, MAX_PIXELS), 0, 0, zoom);
   }

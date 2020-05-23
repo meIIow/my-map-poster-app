@@ -1,4 +1,6 @@
 import React, { Component } from 'react';
+import SelectBorder from './SelectBorder.jsx';
+import SelectSize from './SelectSize.jsx';
 const urlCreator = window.URL || window.webkitURL;
 
 const MAP_BORDER_WIDTH = 25;
@@ -39,6 +41,7 @@ class App extends Component {
     this.snapToDimensions = this.snapToDimensions.bind(this);
     this.setUnits = this.setUnits.bind(this);
     this.setWithUnits = this.setWithUnits.bind(this);
+    this.toggleRatioLock = this.toggleRatioLock.bind(this);
     this.updateResolution = this.updateResolution.bind(this);
     this.updatePixels = this.updatePixels.bind(this);
     this.submit = this.submit.bind(this);
@@ -184,6 +187,7 @@ class App extends Component {
 
   toggleRatioLock() {
     const lock = document.getElementById('lock-ratio');
+    console.log(this.state.lock);
     if (this.state.lock) return this.setState({ lock: false });
     const dimensions = this.expandToFitRatio(this.state.dimensions, this.state.ratio);
     this.setState({ lock: true, dimensions });
@@ -359,38 +363,18 @@ class App extends Component {
   render() {
     console.log("App page rendering...")
 
+    const selects = [
+      <SelectBorder phase={1} ratio ={this.state.ratio} updateRatio ={this.updateRatio} toggleRatioLock = {this.toggleRatioLock} lock = {this.state.lock}/>,
+      <SelectSize phase={2} withUnits ={this.state.withUnits} setWithUnits ={this.setWithUnits} lock = {this.state.lock} ratio = {this.state.ratio} mult = {this.state.mult} dimensions = {this.state.dimensions} resolution = {this.state.resolution} updateResolution = {this.state.updateResolution}/>
+    ]
+
     return (
       <div id="boundsContainer">
         <div id="mapDisplayArea"><div><img id='mypic'></img></div><div id="mapBorder" onMouseUp={() => {this.resizeMap()}}><div id="mapWrapper"></div></div></div>
         <div id="boundsOptions">
-          <input id="pac-input" type="text" placeholder="Enter a location"></input>
-          <input id="re-center" type="button" value="Re-Center Map"></input>
-          <div>width:</div>
-          <input type="number" id="width" min="1" value={this.state.ratio.width} onInput={(event) => {this.updateRatio(event.target.value, false)}}></input>
-          <div>height:</div>
-          <input type="number" id="height" min="1" value={this.state.ratio.height} onInput={(event) => {this.updateRatio(false, event.target.value)}}></input>
-          <div>lock ratio:</div>
-          <label class="switch">
-            <input id="lock-ratio" type="checkbox" value = {this.state.lock} onClick={() => this.toggleRatioLock()}></input>
-            <span class="slider round"></span>
-          </label>
-          <div class="tab">
-            <button class={`tablinks${this.state.withUnits ? ' active' : ''}`} onClick={() => this.setWithUnits(true)}>Units & Resolution</button>
-            <button class={`tablinks${!this.state.withUnits ? ' active' : ''}`} onClick={() => this.setWithUnits(false)}>Pixel Dimensions</button>
-          </div>
-          <div>
-            <div class="halfsies">width units:
-              <input type="number" disabled={!this.state.withUnits} class="units" id="width-units" min="0" onInput={(e)=> this.setUnits(e.target.value, null)} value={(this.state.lock) ? this.state.ratio.width * this.state.mult.ratio : this.state.dimensions.x * this.state.mult.dimensions / this.state.resolution}></input>
-            </div>
-            <div class="halfsies">height units:
-              <input type="number" disabled={!this.state.withUnits} class="units" id="height-units" min="0" onInput={(e)=> this.setUnits(null, e.target.value)} value={(this.state.lock) ? this.state.ratio.height * this.state.mult.ratio : this.state.dimensions.y * this.state.mult.dimensions / this.state.resolution}></input>
-            </div>
-            <div>Pixel Density:<input type="number" disabled={!this.state.withUnits} value={this.state.resolution} min="0" step="50" onInput={(e)=> this.updateResolution(e.target.value)}></input></div>
-          </div>
-          <div>width-pixels:</div>
-          <input type="number" disabled={this.state.withUnits} id="width-pixels" min="1" value={Math.round((this.state.lock) ? this.state.ratio.width * this.state.mult.ratio  * this.state.resolution : this.state.dimensions.x * this.state.mult.dimensions)} onInput={(e)=> this.updatePixels(e.target.value, null)}></input>
-          <div>height-pixels:</div>
-          <input type="number" disabled={this.state.withUnits} id="height-pixels" min="1" value={Math.round((this.state.lock) ? this.state.ratio.height * this.state.mult.ratio * this.state.resolution : this.state.dimensions.y * this.state.mult.dimensions)} onInput={(e)=> this.updatePixels(null, e.target.value)}></input>
+          {selects[this.state.phase]}
+          <div><button class="tablinks" onClick={() => this.setState({ phase: this.state.phase + 1})}>Next!!</button></div>
+          <div><button class="tablinks" onClick={() =>this.setState({ phase: (this.state.phase > 0) ? this.state.phase - 1 : this.state.phase})}>Back!!</button></div>
           <div><button class="tablinks" onClick={() => this.infoOrSample()}>Get It!!</button></div>
         </div>
       </div>
