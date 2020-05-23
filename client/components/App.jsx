@@ -365,7 +365,7 @@ class App extends Component {
 
     const selects = [
       <SelectBorder phase={1} ratio ={this.state.ratio} updateRatio ={this.updateRatio} toggleRatioLock = {this.toggleRatioLock} lock = {this.state.lock}/>,
-      <SelectSize phase={2} withUnits ={this.state.withUnits} setWithUnits ={this.setWithUnits} lock = {this.state.lock} ratio = {this.state.ratio} mult = {this.state.mult} dimensions = {this.state.dimensions} resolution = {this.state.resolution} updateResolution = {this.state.updateResolution}/>
+      <SelectSize phase={2} withUnits ={this.state.withUnits} setWithUnits ={this.setWithUnits} lock = {this.state.lock} ratio = {this.state.ratio} mult = {this.state.mult} dimensions = {this.state.dimensions} resolution = {this.state.resolution} updateResolution = {this.updateResolution} updatePixels = {this.updatePixels} setUnits={this.setUnits}/>
     ]
 
     return (
