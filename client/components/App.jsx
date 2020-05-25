@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import NextButton from './Next.jsx';
 import SelectBorder from './SelectBorder.jsx';
 import SelectSize from './SelectSize.jsx';
 const urlCreator = window.URL || window.webkitURL;
@@ -72,9 +73,7 @@ class App extends Component {
 
   getSample() {
     const url = '/preview';
-    const x = myMap.getCenter();
-    console.log(x.lat(), x.lng(), center.lat(), center.lng());
-
+    const center = myMap.getCenter();
     const parcel = {
       lat: center.lat(),
       lng: center.lng(),
@@ -82,7 +81,7 @@ class App extends Component {
       width:  this.state.bounds.width,
       zoom: this.state.bounds.zoom,
     };
-    console.log("abc");
+
     fetch(url, {
       method: 'POST',
       headers: {
@@ -97,7 +96,7 @@ class App extends Component {
           console.log("data", data);
           document.getElementById('mypic').src = urlCreator.createObjectURL(data);
           const mapBorder = document.getElementById('mapBorder');
-          mapBorder.style.visibility = "hidden";
+          mapBorder.style.visibility = "hidden"; // TODO - get rid of this!
           return Promise.resolve();
         });
       }
@@ -109,14 +108,12 @@ class App extends Component {
   getInfo() {
     const url = '/border';
     const x = myMap.getBounds();
-    center = myMap.getCenter();
-
-    bounds = x;
     const parcel = {
       northWestLatLng: {lat: x.getNorthEast().lat(), lng: x.getSouthWest().lng()},
       southEastLatLng: {lat: x.getSouthWest().lat(), lng: x.getNorthEast().lng()},
-      height: (this.state.lock) ? this.state.ratio.height * this.state.mult.ratio * this.state.resolution :  this.state.dimensions.y * this.state.mult.dimensions,
-      width: (this.state.lock) ? this.state.ratio.width * this.state.mult.ratio * this.state.resolution :  this.state.dimensions.x * this.state.mult.dimensions,
+      height: Math.round(this.getUnits().y * this.state.resolution),
+      width:  Math.round(this.getUnits().x * this.state.resolution),
+      lock: this.state.lock
     }
 
     fetch(url, {
@@ -134,29 +131,7 @@ class App extends Component {
       return Promise.reject(response.statusText);
     }).then((json) => {
       console.log(json);
-      const b = json.bounds;
-      const mapWrapper = document.getElementById('mapWrapper');
-      const mapBorder = document.getElementById('mapBorder');
-      mapBorder.style.width = '100%';
-      mapBorder.style.height = '100%';
-      mapWrapper.style.width = '100%';
-      mapWrapper.style.height = '100%';
-      mapWrapper.style.maxWidth = json.width + 'px';
-      mapWrapper.style.maxHeight = json.height + 'px';
-      mapBorder.style.resize = 'none';
-      console.log(parcel, json.bounds);
-      myMap.setOptions({
-        restriction: {
-          latLngBounds: new google.maps.LatLngBounds(
-            new google.maps.LatLng(b.south.value, b.west.value),
-            new google.maps.LatLng(b.north.value, b.east.value)),
-          strictBounds: true
-        },
-        zoom: json.zoom,
-        minZoom: json.zoom,
-        maxZoom: json.zoom,
-      });
-      this.setState({bounds: json, phase: 1});
+      this.setState({bounds: json, phase: STYLE_PHASE});
     });
   }
 
@@ -313,8 +288,48 @@ class App extends Component {
     border.style.height = this.state.dimensions.y + MAP_BORDER_WIDTH + 'px';
   }
 
+  // Derives map, wrapper and border state from app state
+  syncMap() {
+    const mapWrapper = document.getElementById('mapWrapper');
+    const mapBorder = document.getElementById('mapBorder');
+    if (!mapWrapper || !mapBorder || !myMap) return; // Ignore if not yet loaded.
+    mapBorder.style.resize = (this.state.phase === BORDER_PHASE) ? "both" : 'none';
+    myMap.setOptions({
+      disableDefaultUI: (this.state.phase !== BORDER_PHASE),
+      draggable: (this.state.phase !== SIZE_PHASE),
+    });
+
+    // May be better to just render a whole separate map after size is chosen...
+    if (this.state.phase === STYLE_PHASE) {
+      // Effectively remove border and expand map to take up the entire space.
+      // Will need to extract this and potentially change depending on phase
+      // ...or back will begin to fail prolly...
+      mapBorder.style.width = '100%';
+      mapBorder.style.height = '100%';
+      mapWrapper.style.width = '100%';
+      mapWrapper.style.height = '100%';
+      mapWrapper.style.maxWidth = this.state.bounds.width + 'px';
+      mapWrapper.style.maxHeight = this.state.bounds.height + 'px';
+
+      // Bound map to the exact area and zoom the actual map will contain.
+      myMap.setOptions({
+        restriction: {
+          latLngBounds: new google.maps.LatLngBounds(
+            new google.maps.LatLng(this.state.bounds.bounds.south.value, this.state.bounds.bounds.west.value),
+            new google.maps.LatLng(this.state.bounds.bounds.north.value, this.state.bounds.bounds.east.value)),
+          strictBounds: true
+        },
+        zoom: this.state.bounds.zoom,
+        minZoom: this.state.bounds.zoom,
+        maxZoom: this.state.bounds.zoom,
+      });
+    }
+  }
+
   componentDidUpdate() {
     this.snapToDimensions();
+    this.syncMap();
+
   }
 
   componentDidMount() {
@@ -378,14 +393,22 @@ class App extends Component {
       <SelectSize phase={2} resolution = {this.state.resolution} updateResolution = {this.updateResolution} setUnits={this.setUnits} unit={this.state.unit} updateUnitType={this.updateUnitType} getUnits={this.getUnits}/>
     ]
 
+    const nextButtons = [
+      <NextButton click={() => this.setState({ phase: SIZE_PHASE})}/>,
+      <NextButton test='Get It!!' click={() => this.getInfo()}/>,
+      <NextButton text='Get a Sample!!' click={() => this.getSample()}/>
+    ]
+
     return (
       <div id="boundsContainer">
-        <div id="mapDisplayArea"><div><img id='mypic'></img></div><div id="mapBorder" onMouseUp={() => {this.resizeMap()}}><div id="mapWrapper"></div></div></div>
+        <div id="mapDisplayArea">
+          <div><img id='mypic'></img></div>
+          <div id="mapBorder" onMouseUp={() => {this.resizeMap()}}><div id="mapWrapper"></div></div>
+        </div>
         <div id="boundsOptions">
           {selects[this.state.phase]}
-          <div><button class="tablinks" onClick={() => this.setState({ phase: this.state.phase + 1})}>Next!!</button></div>
+          {nextButtons[this.state.phase]}
           <div><button class="tablinks" onClick={() =>this.setState({ phase: (this.state.phase > 0) ? this.state.phase - 1 : this.state.phase})}>Back!!</button></div>
-          <div><button class="tablinks" onClick={() => this.infoOrSample()}>Get It!!</button></div>
         </div>
       </div>
     );
