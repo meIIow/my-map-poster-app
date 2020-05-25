@@ -4,6 +4,11 @@ import SelectSize from './SelectSize.jsx';
 const urlCreator = window.URL || window.webkitURL;
 
 const MAP_BORDER_WIDTH = 25;
+const BORDER_PHASE = 0;
+const SIZE_PHASE = 1;
+const STYLE_PHASE = 2;
+const FINAL_PHASE = 3;
+
 let myMap;
 let bounds;
 let center;
@@ -14,13 +19,13 @@ function getInitialState() {
     bounds: false,
     lock: false,
     mult: {ratio: 1, dimensions: 1},
+    mult2: .01,
     withUnits: false,
     ratio: { width: 3, height: 2 },
     units: { width: 1, height: 1},
     resolution: 200,
     dimensions: { x: 0, y: 0 },
-    range: { x: false, y: false },
-
+    unit: 'Inches',
     img: false // stores image data
   };
 }
@@ -40,10 +45,10 @@ class App extends Component {
     this.stretchFromEmpty = this.stretchFromEmpty.bind(this);
     this.snapToDimensions = this.snapToDimensions.bind(this);
     this.setUnits = this.setUnits.bind(this);
-    this.setWithUnits = this.setWithUnits.bind(this);
     this.toggleRatioLock = this.toggleRatioLock.bind(this);
     this.updateResolution = this.updateResolution.bind(this);
-    this.updatePixels = this.updatePixels.bind(this);
+    this.updateUnitType = this.updateUnitType.bind(this);
+    this.getUnits = this.getUnits.bind(this);
     this.submit = this.submit.bind(this);
     this.getInfo = this.getInfo.bind(this);
     this.infoOrSample = this.infoOrSample.bind(this);
@@ -193,11 +198,22 @@ class App extends Component {
     this.setState({ lock: true, dimensions });
   }
 
-  updatePixels(width, height) {
-    const ratioMult = (width !== null) ? width / this.state.ratio.width / this.state.resolution: height / this.state.ratio.height / this.state.resolution;
-    const dimensionMult = (width !== null) ? width / this.state.dimensions.x : height / this.state.dimensions.y;
-    if (!this.state.lock) return this.setState({mult: {ratio: this.state.mult.ratio, dimensions: dimensionMult}});
-    this.setState({mult: {dimensions: this.state.mult.dimensions, ratio: ratioMult}});
+  getUnits() {
+    // Rounded to nearest thousandth
+    return {
+      x: (Math.round((this.state.dimensions.x * this.state.mult2 + Number.EPSILON) * 1000) / 1000),
+      y: (Math.round((this.state.dimensions.y * this.state.mult2 + Number.EPSILON) * 1000) / 1000)
+    }
+  }
+
+  updateUnitType(unit) {
+    let mult2 = this.state.mult2;
+    let resolution = this.state.resolution;
+    if (unit === "Pixels") {
+      mult2 = mult2 * resolution;
+      resolution = 1;
+    }
+    return this.setState({unit, mult2, resolution});
   }
 
   updateResolution(resolution) {
@@ -236,14 +252,8 @@ class App extends Component {
   }
 
   setUnits(width, height) {
-    const ratioMult = (width !== null) ? width / this.state.ratio.width : height / this.state.ratio.height;
-    const dimensionMult = (width !== null) ? width / this.state.dimensions.x * this.state.resolution: height / this.state.dimensions.y * this.state.resolution;
-    if (!this.state.lock) return this.setState({mult: {ratio: this.state.mult.ratio, dimensions: dimensionMult}});
-    this.setState({mult: {dimensions: this.state.mult.dimensions, ratio: ratioMult}});
-  }
-
-  setWithUnits(boo) {
-    this.setState({withUnits: boo});
+    const mult2 = (width !== null) ? width / this.state.dimensions.x : height / this.state.dimensions.y;
+    this.setState({mult2});
   }
 
   resizeToFit(dimensions, ratio) {
@@ -365,7 +375,7 @@ class App extends Component {
 
     const selects = [
       <SelectBorder phase={1} ratio ={this.state.ratio} updateRatio ={this.updateRatio} toggleRatioLock = {this.toggleRatioLock} lock = {this.state.lock}/>,
-      <SelectSize phase={2} withUnits ={this.state.withUnits} setWithUnits ={this.setWithUnits} lock = {this.state.lock} ratio = {this.state.ratio} mult = {this.state.mult} dimensions = {this.state.dimensions} resolution = {this.state.resolution} updateResolution = {this.updateResolution} updatePixels = {this.updatePixels} setUnits={this.setUnits}/>
+      <SelectSize phase={2} resolution = {this.state.resolution} updateResolution = {this.updateResolution} setUnits={this.setUnits} unit={this.state.unit} updateUnitType={this.updateUnitType} getUnits={this.getUnits}/>
     ]
 
     return (
