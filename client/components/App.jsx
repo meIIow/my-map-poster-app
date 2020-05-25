@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import NextButton from './Next.jsx';
 import SelectBorder from './SelectBorder.jsx';
 import SelectSize from './SelectSize.jsx';
+import SelectStyle from './SelectStyle.jsx';
 const urlCreator = window.URL || window.webkitURL;
 
 const MAP_BORDER_WIDTH = 25;
@@ -390,7 +391,8 @@ class App extends Component {
 
     const selects = [
       <SelectBorder phase={1} ratio ={this.state.ratio} updateRatio ={this.updateRatio} toggleRatioLock = {this.toggleRatioLock} lock = {this.state.lock}/>,
-      <SelectSize phase={2} resolution = {this.state.resolution} updateResolution = {this.updateResolution} setUnits={this.setUnits} unit={this.state.unit} updateUnitType={this.updateUnitType} getUnits={this.getUnits}/>
+      <SelectSize phase={2} resolution = {this.state.resolution} updateResolution = {this.updateResolution} setUnits={this.setUnits} unit={this.state.unit} updateUnitType={this.updateUnitType} getUnits={this.getUnits}/>,
+      <SelectStyle phase={3}/>
     ]
 
     const nextButtons = [
