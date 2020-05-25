@@ -16,8 +16,53 @@ const collapse = (e) => {
     child.style.display = e.target.classList.contains('active') ? 'inherit' : 'none';
   }
 }
-const generateElementOptions = (elements) => {
 
+// To Do...
+const generateElementOptions = (elements) => {
+  if (!Object.keys(elements).length) return;
+  return (
+    <div>
+      {Object.keys(elements).map((element) => {
+        return (
+          <div class="collapsible" onClick={collapse}>
+            {element}
+            {generateRuleOptions(StyleTree.rule)}
+            {generateElementOptions(elements[element])}
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+const styleRuleToInput = (rule) => {
+  if (rule.type === 'color') return <input type='color'></input>
+  if (rule.type === 'bool') return <input type='checkbox'></input>
+  if (rule.type === 'float') return <input type='range' min={rule.min} max={rule.max}></input>
+  if (rule.type === 'int') return <input type='number' min={rule.min} max={rule.max} step='1'></input>
+  if (rule.type === 'choice') return (
+      <select onChange={() => {}}>
+        {rule.options.map((option) => {
+          return <option value={option}>{option}</option>
+        })}
+      </select>
+    )
+  console.log('problem rendering style rule!', rule);
+}
+
+const generateRuleOptions = (rules) => {
+  return (
+    <div>
+      {Object.keys(rules).map((rule) => {
+        return (
+          <div>
+            <div>{rule}</div>
+            {styleRuleToInput(rules[rule])}
+          </div>
+        )
+      })}
+    </div>
+  )
 }
 
 const generateCollapsibleStyleTree = (features, elements, rules, depth) => {
@@ -28,6 +73,7 @@ const generateCollapsibleStyleTree = (features, elements, rules, depth) => {
         return  (
           <div class="collapsible" onClick={collapse}>
             {feature}
+            {generateElementOptions(elements)}
             {generateCollapsibleStyleTree(features[feature], elements, rules, depth + 1)}
           </div>
         )

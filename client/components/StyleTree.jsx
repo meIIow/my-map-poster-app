@@ -52,7 +52,8 @@ const ElementTree = {
   }
 }
 
-const StyleRuleTree = {
+const StyleRuleSet = {
+  /** Disable these (for now??)
   hue: {
     type: 'color',
   }, // hex string, eg #RRGGBB
@@ -71,6 +72,7 @@ const StyleRuleTree = {
     min: 0.01,
     max: 10,
   }, // (0.01, 10)
+  **/
   invert_lighness: {
     type: 'bool',
   }, // boolean
@@ -99,7 +101,7 @@ const addAll = (tree) => {
 const StyleTree = {
   feature: addAll(FeatureTree),
   element: addAll(ElementTree),
-  rule: StyleRuleTree
+  rule: StyleRuleSet
 }
 
 export default StyleTree;
