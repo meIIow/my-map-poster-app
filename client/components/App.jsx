@@ -95,8 +95,6 @@ class App extends Component {
         response.blob().then(data => {
           console.log("data", data);
           document.getElementById('mypic').src = urlCreator.createObjectURL(data);
-          const mapBorder = document.getElementById('mapBorder');
-          mapBorder.style.visibility = "hidden"; // TODO - get rid of this!
           return Promise.resolve();
         });
       }
@@ -311,6 +309,9 @@ class App extends Component {
       mapWrapper.style.maxWidth = this.state.bounds.width + 'px';
       mapWrapper.style.maxHeight = this.state.bounds.height + 'px';
 
+      const sample = document.getElementById('mypic');
+      sample.style.visibility = "inherit";
+
       // Bound map to the exact area and zoom the actual map will contain.
       myMap.setOptions({
         restriction: {
@@ -374,7 +375,6 @@ class App extends Component {
       map.setCenter(place.geometry.location);
     });
 
-
     const { height, width } = document.getElementById('mapDisplayArea').getBoundingClientRect();
     console.log(height, width);
     mapBorder.style.height = height / 2 + 'px';
@@ -402,7 +402,9 @@ class App extends Component {
     return (
       <div id="boundsContainer">
         <div id="mapDisplayArea">
-          <div><img id='mypic'></img></div>
+          <div id='sampleWrapper'>
+            <img id='mypic'></img>
+          </div>
           <div id="mapBorder" onMouseUp={() => {this.resizeMap()}}><div id="mapWrapper"></div></div>
         </div>
         <div id="boundsOptions">
