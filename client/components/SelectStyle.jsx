@@ -86,8 +86,11 @@ const SelectStyle = (props) => {
   return (
     <div>
       <Instructions stepNumber={props.phase} stepName={STEP_NAME} instructions={INSTRUCTIONS}/>
-      <div>
+      <div id="style-tree-container">
         {StyleTree.render(props.tree, props.collapseFunc, props.toggleStyleChoice)}
+      </div>
+      <div>
+        <button class="tablinks" onClick={() => console.log(StyleTree.getStyles(props.tree))}>Print</button>
       </div>
     </div>
   );

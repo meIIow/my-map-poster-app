@@ -79,26 +79,6 @@
   visibility: hidden;
 }
 
-.collapsible {
-  background-color: #eee;
-  color: #444;
-  cursor: pointer;
-  padding: 10px;
-  width: 100%;
-  text-align: left;
-  border: none;
-  outline: none;
-  transition: 0.4s;
-}
-
-.active, .collapsible:hover {
-  background-color: #ccc;
-}
-
-:disabled {
-  background: gray;
-}
-
 /* Style the tab */
 .halfsies {
   float: left;
@@ -147,13 +127,24 @@
   border-top: none;
 }
 
+#style-tree-container div ul {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+}
+
 ul {
   list-style-type: none;
-  margin: 1;
 }
 
 /* Style the caret/arrow */
 .caret {
+  cursor: pointer;
+  user-select: none; /* Prevent text selection */
+}
+
+/* Style the caret/arrow */
+.caret-down {
   cursor: pointer;
   user-select: none; /* Prevent text selection */
 }
@@ -163,7 +154,7 @@ ul {
   content: "\25B6";
   color: black;
   display: inline-block;
-  margin-right: 1px;
+  margin-right: 6px;
 }
 
 /* Create the down caret/arrow with a unicode, and style it */
@@ -171,7 +162,7 @@ ul {
   content: "\25BC";
   color: black;
   display: inline-block;
-  margin-right: 1px;
+  margin-right: 6px;
 }
 
 /* Hide the nested list */
@@ -182,4 +173,16 @@ ul {
 /* Show the nested list when the user clicks on the caret/arrow (with JavaScript) */
 .active {
   display: block;
+}
+
+.tree-div {
+  margin-left: 10px;
+}
+
+.chosen {
+  background-color: red;
+}
+
+.waterfall {
+  background-color: pink;
 }

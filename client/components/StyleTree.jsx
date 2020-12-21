@@ -75,7 +75,7 @@ const STYLE_RULES = {
     max: 10,
   }, // (0.01, 10)
   **/
-  invert_lighness: {
+  invert_lightness: {
     type: 'bool',
   },
   visibility: {
@@ -114,7 +114,7 @@ const buildDefaultFeatureTree = (prefix, features, elements, rules) => {
     node.FEATURES[prefix + feature] =
       buildDefaultFeatureTree(prefix + feature + ".", features[feature], elements, rules);
   }
-  node.ELEMENT = buildDefaultElementTree("", elements, rules)
+  node.ELEMENT = buildDefaultElementTree("", elements, rules);
   return node;
 }
 
@@ -132,7 +132,7 @@ const buildDefaultElementTree = (prefix, elements, rules) => {
 }
 
 const buildDefaultRuleTree = (rules) => {
-  const node = {... rules};
+  const node =  JSON.parse(JSON.stringify(rules));
   for (const rule in node) {
     node[rule].SET = false;
   }
@@ -140,9 +140,8 @@ const buildDefaultRuleTree = (rules) => {
 }
 
 const createFeatureStyleTree= (tree, collapseFunc, toggleStyleChoice) => {
-  //if (!Object.keys(features).length) return;
   return (
-    <div>
+    <div class="tree-div">
       <ul class={(tree.COLLAPSE) ? "nested" : "active"}>
         <li>
           {createElementStyleTree(tree.ELEMENT, collapseFunc, toggleStyleChoice)}
@@ -162,7 +161,7 @@ const createFeatureStyleTree= (tree, collapseFunc, toggleStyleChoice) => {
 
 const createElementStyleTree = (tree, collapseFunc, toggleStyleChoice) => {
   return (
-    <div>
+    <div class="tree-div">
       <ul class={(tree.COLLAPSE) ? "nested" : "active"}>
         <li>
           {createRulesStyleTree(tree.RULES, toggleStyleChoice)}
@@ -184,13 +183,20 @@ const createRulesStyleTree = (tree, toggle) => {
   return (
     <div>
       {Object.keys(tree).map((rule) => {
-        const valRef = { VALUE: tree[rule].VALUE };
-        const updateVal = (e) => valRef.VALUE = e.value;
+        let def;
+        if (tree[rule].type === "color") def = "#000000";
+        if (tree[rule].type === "choice") def = "simplified";
+        if (tree[rule].type === "bool") def = false;
+
+        const valRef = { VALUE: (tree[rule].VALUE == undefined) ? def : tree[rule].VALUE };
+        const setOrClear = () => {
+          toggle(tree[rule], !tree[rule].SET, valRef.VALUE);
+        }
         return (
-          <div>
+          <div class={(tree[rule].SET) ? "chosen" : "waterfall"}>
             <div>{rule}</div>
-            {styleRuleToInput(tree[rule], updateVal)}
-            <button onClick={() => toggle(tree[rule], !tree[rule].SET, valRef.VALUE)}>{(!tree[rule].SET) ? "Set" : "Clear"}</button>
+            {styleRuleToInput(tree[rule], valRef)}
+            <button onClick={setOrClear}>{(!tree[rule].SET) ? "Set" : "Clear"}</button>
           </div>
         )
       })}
@@ -198,14 +204,28 @@ const createRulesStyleTree = (tree, toggle) => {
   )
 }
 
-const styleRuleToInput = (rule, updateVal) => {
+const styleRuleToInput = (rule, valRef) => {
   const set = rule.SET;
-  if (rule.type === 'color') return <input disabled={set} type='color' onInput={updateVal} value={setInput(set, rule)}></input>
-  if (rule.type === 'bool') return <input disabled={set} type='checkbox' onInput={updateVal} value={setInput(set, rule)}></input>
-  if (rule.type === 'float') return <input disabled={set} type='range' onInput={updateVal} min={rule.min} max={rule.max} value={setInput(set, rule)}></input>
-  if (rule.type === 'int') return <input disabled={set} type='number' onInput={updateVal} min={rule.min} max={rule.max} step='1' value={setInput(set, rule)}></input>
+  const updateVal = (e, f, g) => {
+    console.log(e, f, g);
+    console.log(e.target);
+    console.log(valRef.VALUE);
+    valRef.VALUE = e.target.value;
+  };
+  // const valueOrDefault = (def) => {
+  //   return (val) => (val == undefined) ? def : val;
+  // };
+  // const valueOrBlack = valueOrDefault("#000000");
+  // const valueOrSimplified = valueOrDefault("simplified");
+  // const valueOrFalse = valueOrDefault(false);
+
+  const updateCheck = (e) => valRef.VALUE = e.target.checked;
+  if (rule.type === 'color') return <input disabled={set} type='color' defaultValue={valRef.VALUE} onInput={updateVal}></input>
+  if (rule.type === 'bool') return <input disabled={set} type='checkbox' defaultChecked={valRef.VALUE} onInput={updateCheck}></input>
+  //if (rule.type === 'float') return <input disabled={set} type='range' value={rule.VALUE} onInput={updateVal} min={rule.min} max={rule.max}></input>
+  if (rule.type === 'int') return <input disabled={set} type='number' defaultValue={valRef.VALUE} onInput={updateVal} min={rule.min} max={rule.max} step='1'></input>
   if (rule.type === 'choice') return (
-      <select onInput={updateVal} disabled={set} value={setInput(set, rule)}>
+      <select onInput={updateVal} disabled={set} defaultValue={valRef.VALUE}>
         {rule.options.map((option) => {
           return <option value={option}>{option}</option>
         })}
@@ -214,20 +234,51 @@ const styleRuleToInput = (rule, updateVal) => {
   console.log('This style rule is unsupported: ', rule);
 }
 
-const setInput = (set, rule) => {
-  return (set) ? rule.VALUE : undefined;
+const pullStylesFromStyleTree = (tree) => {
+  const specs = buildDefaultElementTree("", ELEMENT_TREE_TEMPLATE, STYLE_RULES);
+  const styles = [];
+  pullStylesFromFeatureTree("all", tree, specs, styles);
+  return styles;
 }
 
-const addSharedRuleState = (rule) => {
+const pullStylesFromFeatureTree = (f, tree, oldSpecs, styles) => {
+  const specs = pullStylesFromElementTree(f, "all", tree.ELEMENT, oldSpecs, styles);
+  for (const feature in tree.FEATURES) {
+    pullStylesFromFeatureTree(feature, tree.FEATURES[feature], JSON.parse(JSON.stringify(specs)), styles);
+  }
+}
 
+const pullStylesFromElementTree = (f, e, tree, specs, styles) => {
+  // console.log(f);
+  // console.log(e);
+  // console.log(tree);
+  // console.log(specs);
+  for (const rule in tree.RULES) {
+    if (tree.RULES[rule].SET && tree.RULES[rule].VALUE != specs.RULES[rule].VALUE) {
+      styles.push({f, e, rule, value: tree.RULES[rule].VALUE});
+      propagateSpecs(specs, rule, tree.RULES[rule].VALUE);
+    }
+  }
+  for (const element in tree.ELEMENTS) {
+    pullStylesFromElementTree(f, element, tree.ELEMENTS[element], specs.ELEMENTS[element], styles);
+  }
+  return specs;
+}
+
+const propagateSpecs = (specs, rule, value) => {
+  specs.RULES[rule].VALUE = value;
+  for (const element in specs.ELEMENTS) {
+    propagateSpecs(specs.ELEMENTS[element], rule, value);
+  }
 }
 
 const StyleTree = {
-  feature: addAll(FEATURE_TREE_TEMPLATE),
-  element: addAll(ELEMENT_TREE_TEMPLATE),
+  // feature: addAll(FEATURE_TREE_TEMPLATE),
+  // element: addAll(ELEMENT_TREE_TEMPLATE),
   rule: STYLE_RULES,
   getDefault: () => buildDefaultFeatureTreeFromTemplate(),
   render: (tree, collapseFunc, toggleStyleChoice) => createFeatureStyleTree(tree, collapseFunc, toggleStyleChoice),
+  getStyles: (tree) => pullStylesFromStyleTree(tree),
 }
 
 export default StyleTree;

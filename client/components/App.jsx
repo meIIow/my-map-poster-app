@@ -176,6 +176,8 @@ class App extends Component {
   toggleStyleChoice(node, set, value) {
     node.SET = set;
     if (set) { node.VALUE = value}
+    console.log(node, set, value);
+    console.log(this.state.styleTree);
     this.setState({ styleTree: JSON.parse(JSON.stringify(this.state.styleTree))});
   }
 
