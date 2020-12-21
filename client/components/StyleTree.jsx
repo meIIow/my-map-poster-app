@@ -243,6 +243,24 @@ const styleRuleToInput = (rule, valRef) => {
   console.log('This style rule is unsupported: ', rule);
 }
 
+const convertStylesToMapParams = (styles) => {
+  // f, e, tree, rule, value
+  let params = "";
+  console.log(styles)
+  for (const style of styles) {
+    console.log(style)
+    const val = (style.rule==="color") ? colorToHex(style.value) : style.value;
+    const param = "&style=feature:" + style.f + "|element:" + style.e + "|" + style.rule + ":" + val;
+    console.log(param);
+    params += param;
+  }
+  return params;
+}
+
+const colorToHex = (color) => {
+  return "0x" + color.substring(1);
+}
+
 const pullStylesFromStyleTree = (tree) => {
   const specs = buildDefaultElementTree("", ELEMENT_TREE_TEMPLATE, STYLE_RULES);
   const styles = [];
@@ -314,6 +332,7 @@ const StyleTree = {
   getDefault: () => buildDefaultFeatureTreeFromTemplate(),
   render: (tree, collapseFunc, toggleStyleChoice) => createFeatureStyleTree(tree, collapseFunc, toggleStyleChoice),
   getStyles: (tree) => pullStylesFromStyleTree(tree),
+  getStyleParams: (tree) => convertStylesToMapParams(pullStylesFromStyleTree(tree)),
   highlight: (tree) => updateHighlights(tree),
 }
 

@@ -85,6 +85,7 @@ class App extends Component {
       height: this.state.bounds.height,
       width:  this.state.bounds.width,
       zoom: this.state.bounds.zoom,
+      style: StyleTree.getStyleParams(this.state.styleTree),
     };
 
     fetch(url, {
@@ -146,6 +147,7 @@ class App extends Component {
       southEastLatLng: {lat: x.getSouthWest().lat(), lng: x.getNorthEast().lng()},
       height: (this.state.lock) ? this.state.ratio.height * this.state.mult.ratio * this.state.resolution :  this.state.dimensions.y * this.state.mult.dimensions,
       width: (this.state.lock) ? this.state.ratio.width * this.state.mult.ratio * this.state.resolution :  this.state.dimensions.x * this.state.mult.dimensions,
+      style: StyleTree.getStyleParams(this.state.styleTree),
     }
 
     fetch(url, {
