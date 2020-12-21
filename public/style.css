@@ -74,6 +74,7 @@
   border-style: solid;
   border-width: 3px;
   border-color: black;
+  /* TODO: hide overflow, don't resize */
   max-width: 85%;
   max-height: 85%;
   visibility: hidden;
@@ -176,13 +177,33 @@ ul {
 }
 
 .tree-div {
-  margin-left: 10px;
+  margin-left: 15px;
 }
 
 .chosen {
   background-color: red;
 }
 
-.waterfall {
+.waterfall-rule {
   background-color: pink;
+}
+
+.blank-rule {
+  background-color: SeaShell;
+}
+
+.waterfall-element {
+  background-color: SlateBlue;
+}
+
+.blank-element {
+  background-color: SkyBlue;
+}
+
+.waterfall-feature {
+  background-color: SeaGreen;
+}
+
+.blank-feature {
+  background-color: PaleGreen;
 }

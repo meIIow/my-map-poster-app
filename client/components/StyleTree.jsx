@@ -109,6 +109,7 @@ const buildDefaultFeatureTree = (prefix, features, elements, rules) => {
     FEATURES: {},
     ELEMENT: {},
     COLLAPSE: prefix != "",
+    HIGHLIGHT: false,
   };
   for (const feature in features) {
     node.FEATURES[prefix + feature] =
@@ -123,6 +124,7 @@ const buildDefaultElementTree = (prefix, elements, rules) => {
     ELEMENTS: {},
     RULES: {},
     COLLAPSE: prefix != "",
+    HIGHLIGHT: false,
   };
   for (const element in elements) {
     node.ELEMENTS[prefix + element] = buildDefaultElementTree(prefix + element + ".", elements[element], rules);
@@ -140,16 +142,20 @@ const buildDefaultRuleTree = (rules) => {
 }
 
 const createFeatureStyleTree= (tree, collapseFunc, toggleStyleChoice) => {
+  const classes = ((tree.COLLAPSE) ? "nested" : "active");
   return (
     <div class="tree-div">
-      <ul class={(tree.COLLAPSE) ? "nested" : "active"}>
+      <ul class={classes}>
         <li>
           {createElementStyleTree(tree.ELEMENT, collapseFunc, toggleStyleChoice)}
         </li>
         {Object.keys(tree.FEATURES).map((feature) => {
+          const listClasses = ((tree.FEATURES[feature].HIGHLIGHT) ? "waterfall-feature" : "blank-feature");
+          const dropClasses =
+            ((!tree.FEATURES[feature].COLLAPSE) ? "caret-down" : "caret") + " " + listClasses;
           return (
-            <li>
-              <span class={(!tree.FEATURES[feature].COLLAPSE) ? "caret-down" : "caret"} onClick={(e) => collapseFunc(tree.FEATURES[feature])}>{feature}</span>
+            <li class={listClasses}>
+              <span class={dropClasses} onClick={(e) => collapseFunc(tree.FEATURES[feature])}>{feature}</span>
               {createFeatureStyleTree(tree.FEATURES[feature], collapseFunc, toggleStyleChoice)}
             </li>
           )
@@ -160,16 +166,19 @@ const createFeatureStyleTree= (tree, collapseFunc, toggleStyleChoice) => {
 }
 
 const createElementStyleTree = (tree, collapseFunc, toggleStyleChoice) => {
+  const classes = ((tree.COLLAPSE) ? "nested" : "active");
   return (
     <div class="tree-div">
-      <ul class={(tree.COLLAPSE) ? "nested" : "active"}>
+      <ul class={classes}>
         <li>
           {createRulesStyleTree(tree.RULES, toggleStyleChoice)}
         </li>
         {Object.keys(tree.ELEMENTS).map((element) => {
+          const listClasses = ((tree.ELEMENTS[element].HIGHLIGHT) ? "waterfall-element" : "blank-element");
+          const dropClasses = ((!tree.ELEMENTS[element].COLLAPSE) ? "caret-down" : "caret") + " " + listClasses;
           return (
-            <li>
-            <span class={(!tree.ELEMENTS[element].COLLAPSE) ? "caret-down" : "caret"} onClick={(e) => collapseFunc(tree.ELEMENTS[element])}>{element}</span>
+            <li class={listClasses}>
+              <span class={dropClasses} onClick={(e) => collapseFunc(tree.ELEMENTS[element])}>{element}</span>
               {createElementStyleTree(tree.ELEMENTS[element], collapseFunc, toggleStyleChoice)}
             </li>
           )
@@ -181,7 +190,7 @@ const createElementStyleTree = (tree, collapseFunc, toggleStyleChoice) => {
 
 const createRulesStyleTree = (tree, toggle) => {
   return (
-    <div>
+    <div class="blank-rule">
       {Object.keys(tree).map((rule) => {
         let def;
         if (tree[rule].type === "color") def = "#000000";
@@ -272,6 +281,32 @@ const propagateSpecs = (specs, rule, value) => {
   }
 }
 
+const updateHighlights = (styleTree) => {
+  styleTree.HIGHLIGHT = false;
+  if ("FEATURES" in styleTree) {
+    for (const feature in styleTree.FEATURES) {
+      updateHighlights(styleTree.FEATURES[feature]);
+      if (styleTree.FEATURES[feature].HIGHLIGHT) { styleTree.HIGHLIGHT = true }
+    }
+  }
+  if ("ELEMENT" in styleTree) {
+    updateHighlights(styleTree.ELEMENT)
+    if (styleTree.ELEMENT.HIGHLIGHT) { styleTree.HIGHLIGHT = true }
+  }
+  if ("ELEMENTS" in styleTree) {
+    for (const element in styleTree.ELEMENTS) {
+      updateHighlights(styleTree.ELEMENTS[element]);
+      if (styleTree.ELEMENTS[element].HIGHLIGHT) { styleTree.HIGHLIGHT = true }
+    }
+  }
+  if ("RULES" in styleTree) {
+    for (const rule in styleTree.RULES) {
+      if (styleTree.RULES[rule].SET) { styleTree.HIGHLIGHT = true }
+    }
+  }
+  return styleTree;
+}
+
 const StyleTree = {
   // feature: addAll(FEATURE_TREE_TEMPLATE),
   // element: addAll(ELEMENT_TREE_TEMPLATE),
@@ -279,6 +314,7 @@ const StyleTree = {
   getDefault: () => buildDefaultFeatureTreeFromTemplate(),
   render: (tree, collapseFunc, toggleStyleChoice) => createFeatureStyleTree(tree, collapseFunc, toggleStyleChoice),
   getStyles: (tree) => pullStylesFromStyleTree(tree),
+  highlight: (tree) => updateHighlights(tree),
 }
 
 export default StyleTree;

@@ -86,7 +86,8 @@ const SelectStyle = (props) => {
   return (
     <div>
       <Instructions stepNumber={props.phase} stepName={STEP_NAME} instructions={INSTRUCTIONS}/>
-      <div id="style-tree-container">
+      <div id="style-tree-container" class="blank-feature">
+        Style Tree
         {StyleTree.render(props.tree, props.collapseFunc, props.toggleStyleChoice)}
       </div>
       <div>

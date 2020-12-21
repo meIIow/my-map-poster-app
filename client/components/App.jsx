@@ -158,6 +158,7 @@ class App extends Component {
     }).then(response => {
       if (response.status >= 200 && response.status < 300) {
         console.log(response)
+
         response.blob().then(data => {
           console.log(data);
           document.getElementById('mypic').src = urlCreator.createObjectURL(data);
@@ -170,7 +171,9 @@ class App extends Component {
 
   toggleStyleTreeCollapse(node) {
     node.COLLAPSE = !node.COLLAPSE;
-    this.setState({ styleTree: JSON.parse(JSON.stringify(this.state.styleTree))});
+    this.setState({
+      styleTree: StyleTree.highlight(JSON.parse(JSON.stringify(this.state.styleTree)))
+    });
   }
 
   toggleStyleChoice(node, set, value) {
@@ -178,7 +181,9 @@ class App extends Component {
     if (set) { node.VALUE = value}
     console.log(node, set, value);
     console.log(this.state.styleTree);
-    this.setState({ styleTree: JSON.parse(JSON.stringify(this.state.styleTree))});
+    this.setState({
+      styleTree: StyleTree.highlight(JSON.parse(JSON.stringify(this.state.styleTree)))
+    });
   }
 
   toggleRatioLock() {
@@ -412,10 +417,19 @@ class App extends Component {
       <SelectStyle phase={3} tree={this.state.styleTree} collapseFunc={this.toggleStyleTreeCollapse} toggleStyleChoice={this.toggleStyleChoice}/>
     ]
 
+    const styleNexts = () => {
+      return (
+        <div>
+          <NextButton text='Get a Sample!' click={() => this.getSample()}/>
+          <NextButton text='Get Poster Already!!' click={() => this.submit()}/>
+        </div>
+      )
+    }
+
     const nextButtons = [
       <NextButton click={() => this.setState({ phase: SIZE_PHASE})}/>,
       <NextButton test='Get It!!' click={() => this.getInfo()}/>,
-      <NextButton text='Get a Sample!!' click={() => this.getSample()}/>
+      styleNexts()
     ]
 
     return (
