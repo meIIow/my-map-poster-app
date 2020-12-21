@@ -146,3 +146,40 @@
   border: 1px solid #ccc;
   border-top: none;
 }
+
+ul {
+  list-style-type: none;
+  margin: 1;
+}
+
+/* Style the caret/arrow */
+.caret {
+  cursor: pointer;
+  user-select: none; /* Prevent text selection */
+}
+
+/* Create the right caret/arrow with a unicode, and style it */
+.caret::before {
+  content: "\25B6";
+  color: black;
+  display: inline-block;
+  margin-right: 1px;
+}
+
+/* Create the down caret/arrow with a unicode, and style it */
+.caret-down::before {
+  content: "\25BC";
+  color: black;
+  display: inline-block;
+  margin-right: 1px;
+}
+
+/* Hide the nested list */
+.nested {
+  display: none;
+}
+
+/* Show the nested list when the user clicks on the caret/arrow (with JavaScript) */
+.active {
+  display: block;
+}

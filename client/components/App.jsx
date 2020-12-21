@@ -3,6 +3,7 @@ import NextButton from './Next.jsx';
 import SelectBorder from './SelectBorder.jsx';
 import SelectSize from './SelectSize.jsx';
 import SelectStyle from './SelectStyle.jsx';
+import StyleTree from './StyleTree.jsx';
 const urlCreator = window.URL || window.webkitURL;
 
 const MAP_BORDER_WIDTH = 25;
@@ -28,7 +29,8 @@ function getInitialState() {
     resolution: 200,
     dimensions: { x: 0, y: 0 },
     unit: 'Inches',
-    img: false // stores image data
+    img: false, // stores image data
+    styleTree: StyleTree.getDefault(),
   };
 }
 
@@ -55,6 +57,8 @@ class App extends Component {
     this.getInfo = this.getInfo.bind(this);
     this.infoOrSample = this.infoOrSample.bind(this);
     this.getSample = this.getSample.bind(this);
+    this.toggleStyleTreeCollapse = this.toggleStyleTreeCollapse.bind(this);
+    this.toggleStyleChoice = this.toggleStyleChoice.bind(this);
   }
 
   bind() {
@@ -162,6 +166,17 @@ class App extends Component {
       }
       return Promise.reject(response.statusText);
     });
+  }
+
+  toggleStyleTreeCollapse(node) {
+    node.COLLAPSE = !node.COLLAPSE;
+    this.setState({ styleTree: JSON.parse(JSON.stringify(this.state.styleTree))});
+  }
+
+  toggleStyleChoice(node, set, value) {
+    node.SET = set;
+    if (set) { node.VALUE = value}
+    this.setState({ styleTree: JSON.parse(JSON.stringify(this.state.styleTree))});
   }
 
   toggleRatioLock() {
@@ -392,7 +407,7 @@ class App extends Component {
     const selects = [
       <SelectBorder phase={1} ratio ={this.state.ratio} updateRatio ={this.updateRatio} toggleRatioLock = {this.toggleRatioLock} lock = {this.state.lock}/>,
       <SelectSize phase={2} resolution = {this.state.resolution} updateResolution = {this.updateResolution} setUnits={this.setUnits} unit={this.state.unit} updateUnitType={this.updateUnitType} getUnits={this.getUnits}/>,
-      <SelectStyle phase={3}/>
+      <SelectStyle phase={3} tree={this.state.styleTree} collapseFunc={this.toggleStyleTreeCollapse} toggleStyleChoice={this.toggleStyleChoice}/>
     ]
 
     const nextButtons = [
