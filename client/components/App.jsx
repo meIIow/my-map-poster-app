@@ -31,6 +31,7 @@ function getInitialState() {
     unit: 'Inches',
     img: false, // stores image data
     styleTree: StyleTree.getDefault(),
+    mapStyle: "roadmap",
   };
 }
 
@@ -59,6 +60,7 @@ class App extends Component {
     this.getSample = this.getSample.bind(this);
     this.toggleStyleTreeCollapse = this.toggleStyleTreeCollapse.bind(this);
     this.toggleStyleChoice = this.toggleStyleChoice.bind(this);
+    this.setMapStyle = this.setMapStyle.bind(this);
   }
 
   bind() {
@@ -86,6 +88,7 @@ class App extends Component {
       width:  this.state.bounds.width,
       zoom: this.state.bounds.zoom,
       style: StyleTree.getStyleParams(this.state.styleTree),
+      mapType: this.state.mapStyle,
     };
 
     fetch(url, {
@@ -105,6 +108,7 @@ class App extends Component {
         });
       }
       console.log("prollem");
+      console.log(response);
       return Promise.reject(response.statusText);
     });
   }
@@ -117,7 +121,7 @@ class App extends Component {
       southEastLatLng: {lat: x.getSouthWest().lat(), lng: x.getNorthEast().lng()},
       height: Math.round(this.getUnits().y * this.state.resolution),
       width:  Math.round(this.getUnits().x * this.state.resolution),
-      lock: this.state.lock
+      lock: this.state.lock,
     }
 
     fetch(url, {
@@ -148,6 +152,7 @@ class App extends Component {
       height: (this.state.lock) ? this.state.ratio.height * this.state.mult.ratio * this.state.resolution :  this.state.dimensions.y * this.state.mult.dimensions,
       width: (this.state.lock) ? this.state.ratio.width * this.state.mult.ratio * this.state.resolution :  this.state.dimensions.x * this.state.mult.dimensions,
       style: StyleTree.getStyleParams(this.state.styleTree),
+      mapType: this.state.mapStyle,
     }
 
     fetch(url, {
@@ -185,6 +190,13 @@ class App extends Component {
     console.log(this.state.styleTree);
     this.setState({
       styleTree: StyleTree.highlight(JSON.parse(JSON.stringify(this.state.styleTree)))
+    });
+  }
+
+  setMapStyle(style) {
+    console.log("Setting map style: " + style);
+    this.setState({
+      mapStyle: style,
     });
   }
 
@@ -355,7 +367,6 @@ class App extends Component {
   componentDidUpdate() {
     this.snapToDimensions();
     this.syncMap();
-
   }
 
   componentDidMount() {
@@ -416,7 +427,7 @@ class App extends Component {
     const selects = [
       <SelectBorder phase={1} ratio ={this.state.ratio} updateRatio ={this.updateRatio} toggleRatioLock = {this.toggleRatioLock} lock = {this.state.lock}/>,
       <SelectSize phase={2} resolution = {this.state.resolution} updateResolution = {this.updateResolution} setUnits={this.setUnits} unit={this.state.unit} updateUnitType={this.updateUnitType} getUnits={this.getUnits}/>,
-      <SelectStyle phase={3} tree={this.state.styleTree} collapseFunc={this.toggleStyleTreeCollapse} toggleStyleChoice={this.toggleStyleChoice}/>
+      <SelectStyle phase={3} tree={this.state.styleTree} collapseFunc={this.toggleStyleTreeCollapse} toggleStyleChoice={this.toggleStyleChoice} mapType={this.state.mapStyle} setMapStyle={this.setMapStyle}/>
     ]
 
     const styleNexts = () => {

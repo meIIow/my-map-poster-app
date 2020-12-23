@@ -7,10 +7,11 @@ const ENDPOINT =  'https://maps.googleapis.com/maps/api/staticmap?';
 
 /** Generates formatted requests to the static maps endpoint. */
 class StaticMapHttpRequest {
-  constructor(key, style = '&style=feature:poi.business|visibility:off') {
+  constructor(key, style = '&style=feature:poi.business|visibility:off', mapType) {
     if (key == null) throw Error;
     this.key = key;
     this.style = style;
+    this.mapType = mapType;
   }
 
   // Generates a formatted url for the given image data.
@@ -25,6 +26,7 @@ class StaticMapHttpRequest {
     request += '&zoom=' + image.zoom;
     request += '&size=' + image.width + 'x' + image.height;
     if (this.style) request += this.style;
+    if (this.mapType) request += "&maptype=" + this.mapType;
     request += '&key=' + this.key;
     return request;
   }

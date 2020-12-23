@@ -82,10 +82,29 @@ const INSTRUCTIONS = `Add some Style!`;
 //   );
 // }
 
+const MAP_STYLE_OPTIONS = [
+  "roadmap",
+  "satellite",
+  "hybrid",
+  "terrain"
+];
+
 const SelectStyle = (props) => {
   return (
     <div>
       <Instructions stepNumber={props.phase} stepName={STEP_NAME} instructions={INSTRUCTIONS}/>
+      <div>
+        Map Type
+        {MAP_STYLE_OPTIONS.map((rule) => {
+          const inputId = rule + "-map";
+          return (
+            <div>
+              <input checked={props.mapType == rule} type="radio" id={inputId} onChange={(e) => props.setMapStyle(e.target.value)} name="map-type" value={rule}></input>
+              <label for={inputId}>{rule}</label>
+            </div>
+          )
+        })}
+      </div>
       <div id="style-tree-container" class="blank-feature">
         Style Tree
         {StyleTree.render(props.tree, props.collapseFunc, props.toggleStyleChoice)}

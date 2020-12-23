@@ -35,7 +35,7 @@ const getMapPoster = async (req, res, next) => {
     req.body.southEastLatLng,
   ).fitToDimensions(req.body.height, req.body.width, true);
 
-  const request = new StaticMapHttpRequest(apiKey, req.body.style);
+  const request = new StaticMapHttpRequest(apiKey, req.body.style, req.body.mapType);
   const image = new PosterImage(border.height, border.width);
   await image.batchOverlay(
     Tile.generateBorderSet(border).map(tile => {
@@ -66,7 +66,7 @@ const getPreviewTile = async (req, res, next) => {
   console.log(req.body);
 
   const tile = Tile.generatePreviewTile(req.body.lat, req.body.lng, req.body.height, req.body.width, req.body.zoom);
-  const request = new StaticMapHttpRequest(apiKey, req.body.style);
+  const request = new StaticMapHttpRequest(apiKey, req.body.style, req.body.mapType);
   const image = new PosterImage(tile.height, tile.width);
   image.context.fillStyle = 'red';
   image.context.fillRect(0, 0, tile.width,tile.height);
