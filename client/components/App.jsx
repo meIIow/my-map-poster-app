@@ -5,6 +5,7 @@ import SelectSize from './SelectSize.jsx';
 import SelectStyle from './SelectStyle.jsx';
 import StyleTree from './StyleTree.jsx';
 import ViewPoster from './ViewPoster.jsx';
+import DefaultStyles from './DefaultStyles.jsx';
 const urlCreator = window.URL || window.webkitURL;
 
 const MAP_BORDER_WIDTH = 25;
@@ -33,7 +34,13 @@ function getInitialState() {
     img: false, // stores image data
     styleTree: StyleTree.getDefault(),
     mapStyle: "roadmap",
+    savedStyles: getStoredStyles(),
   };
+}
+
+function getStoredStyles() {
+  const storedStyles = JSON.parse(localStorage.getItem('styles'));
+  return { ...storedStyles, ...DefaultStyles };
 }
 
 class App extends Component {
@@ -62,6 +69,8 @@ class App extends Component {
     this.toggleStyleTreeCollapse = this.toggleStyleTreeCollapse.bind(this);
     this.toggleStyleChoice = this.toggleStyleChoice.bind(this);
     this.setMapStyle = this.setMapStyle.bind(this);
+    this.saveMapStyle = this.saveMapStyle.bind(this);
+    this.loadMapStyle = this.loadMapStyle.bind(this);
   }
 
   bind() {
@@ -203,6 +212,21 @@ class App extends Component {
     console.log("Setting map style: " + style);
     this.setState({
       mapStyle: style,
+    });
+  }
+
+  saveMapStyle(name) {
+    const savedStyles = JSON.parse(JSON.stringify(this.state.savedStyles));
+    const style = JSON.parse(JSON.stringify(this.state.styleTree));
+    StyleTree.collapse(style);
+    savedStyles[name] = style;
+    localStorage.setItem('styles', JSON.stringify(savedStyles));
+    this.setState({ savedStyles: savedStyles });
+  }
+
+  loadMapStyle(style) {
+    this.setState({
+      styleTree: StyleTree.highlight(JSON.parse(JSON.stringify(style)))
     });
   }
 
@@ -441,7 +465,7 @@ class App extends Component {
     const selects = [
       <SelectBorder phase={1} ratio ={this.state.ratio} updateRatio ={this.updateRatio} toggleRatioLock = {this.toggleRatioLock} lock = {this.state.lock}/>,
       <SelectSize phase={2} resolution = {this.state.resolution} updateResolution = {this.updateResolution} setUnits={this.setUnits} unit={this.state.unit} updateUnitType={this.updateUnitType} getUnits={this.getUnits}/>,
-      <SelectStyle phase={3} tree={this.state.styleTree} collapseFunc={this.toggleStyleTreeCollapse} toggleStyleChoice={this.toggleStyleChoice} mapType={this.state.mapStyle} setMapStyle={this.setMapStyle}/>,
+      <SelectStyle phase={3} tree={this.state.styleTree} collapseFunc={this.toggleStyleTreeCollapse} toggleStyleChoice={this.toggleStyleChoice} mapType={this.state.mapStyle} setMapStyle={this.setMapStyle} defaultStyles={this.state.savedStyles} loadMapStyle={this.loadMapStyle} saveMapStyle={this.saveMapStyle}/>,
       <ViewPoster phase={4} downloadUrl={posterDownloadUrl}/>
     ]
 

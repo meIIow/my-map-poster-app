@@ -107,6 +107,18 @@ const SelectStyle = (props) => {
       </div>
       <div id="style-tree-container" class="blank-feature">
         Style Tree
+        Load Style:
+        {Object.keys(props.defaultStyles).map((style) => {
+          return (
+            <button class="tablinks" onClick={() => props.loadMapStyle(props.defaultStyles[style])}>
+              {style}
+            </button>
+          )
+        })}
+        <input id="map-style-name" type='text'></input>
+        <button class="tablinks" onClick={() => props.saveMapStyle(document.getElementById('map-style-name').value)}>
+          Save Styling
+        </button>
         {StyleTree.render(props.tree, props.collapseFunc, props.toggleStyleChoice)}
       </div>
       <div>
