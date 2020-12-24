@@ -4,6 +4,7 @@ import SelectBorder from './SelectBorder.jsx';
 import SelectSize from './SelectSize.jsx';
 import SelectStyle from './SelectStyle.jsx';
 import StyleTree from './StyleTree.jsx';
+import ViewPoster from './ViewPoster.jsx';
 const urlCreator = window.URL || window.webkitURL;
 
 const MAP_BORDER_WIDTH = 25;
@@ -15,17 +16,17 @@ const FINAL_PHASE = 3;
 let myMap;
 let bounds;
 let center;
+let rawPosterData;
+let posterDownloadUrl;
 
 function getInitialState() {
   return {
     phase: 0,
+    bounds1: false,
     bounds: false,
     lock: false,
-    mult: {ratio: 1, dimensions: 1},
     mult2: .01,
-    withUnits: false,
     ratio: { width: 3, height: 2 },
-    units: { width: 1, height: 1},
     resolution: 200,
     dimensions: { x: 0, y: 0 },
     unit: 'Inches',
@@ -115,10 +116,9 @@ class App extends Component {
 
   getInfo() {
     const url = '/border';
-    const x = myMap.getBounds();
     const parcel = {
-      northWestLatLng: {lat: x.getNorthEast().lat(), lng: x.getSouthWest().lng()},
-      southEastLatLng: {lat: x.getSouthWest().lat(), lng: x.getNorthEast().lng()},
+      northWestLatLng: this.state.bounds1.northWestLatLng,
+      southEastLatLng: this.state.bounds1.southEastLatLng,
       height: Math.round(this.getUnits().y * this.state.resolution),
       width:  Math.round(this.getUnits().x * this.state.resolution),
       lock: this.state.lock,
@@ -145,12 +145,12 @@ class App extends Component {
 
   submit() {
     const url = '/photo';
-    const x = myMap.getBounds();
     const parcel = {
-      northWestLatLng: {lat: x.getNorthEast().lat(), lng: x.getSouthWest().lng()},
-      southEastLatLng: {lat: x.getSouthWest().lat(), lng: x.getNorthEast().lng()},
-      height: (this.state.lock) ? this.state.ratio.height * this.state.mult.ratio * this.state.resolution :  this.state.dimensions.y * this.state.mult.dimensions,
-      width: (this.state.lock) ? this.state.ratio.width * this.state.mult.ratio * this.state.resolution :  this.state.dimensions.x * this.state.mult.dimensions,
+      northWestLatLng: this.state.bounds1.northWestLatLng,
+      southEastLatLng: this.state.bounds1.southEastLatLng,
+      height: Math.round(this.getUnits().y * this.state.resolution),
+      width:  Math.round(this.getUnits().x * this.state.resolution),
+      lock: this.state.lock,
       style: StyleTree.getStyleParams(this.state.styleTree),
       mapType: this.state.mapStyle,
     }
@@ -166,13 +166,19 @@ class App extends Component {
       if (response.status >= 200 && response.status < 300) {
         console.log(response)
 
-        response.blob().then(data => {
+        return response.blob().then(data => {
           console.log(data);
-          document.getElementById('mypic').src = urlCreator.createObjectURL(data);
-          return Promise.resolve();
+          //document.getElementById('mypic').src = urlCreator.createObjectURL(data);
+          return Promise.resolve(data);
         })
       }
       return Promise.reject(response.statusText);
+    }).then((data) => {
+      console.log(data);
+      rawPosterData = data;
+      posterDownloadUrl = urlCreator.createObjectURL(data);
+      document.getElementById('poster-image').src = posterDownloadUrl;
+      this.setState({phase: FINAL_PHASE});
     });
   }
 
@@ -334,6 +340,12 @@ class App extends Component {
       draggable: (this.state.phase !== SIZE_PHASE),
     });
 
+    const sample = document.getElementById('mypic');
+    const poster = document.getElementById('poster-wrapper');
+
+    sample.style.visibility = "hidden";
+    poster.style.display = "none";
+
     // May be better to just render a whole separate map after size is chosen...
     if (this.state.phase === STYLE_PHASE) {
       // Effectively remove border and expand map to take up the entire space.
@@ -346,7 +358,6 @@ class App extends Component {
       mapWrapper.style.maxWidth = this.state.bounds.width + 'px';
       mapWrapper.style.maxHeight = this.state.bounds.height + 'px';
 
-      const sample = document.getElementById('mypic');
       sample.style.visibility = "inherit";
 
       // Bound map to the exact area and zoom the actual map will contain.
@@ -361,6 +372,9 @@ class App extends Component {
         minZoom: this.state.bounds.zoom,
         maxZoom: this.state.bounds.zoom,
       });
+    }
+    if (this.state.phase === FINAL_PHASE) {
+      poster.style.display = "inherit";
     }
   }
 
@@ -427,7 +441,8 @@ class App extends Component {
     const selects = [
       <SelectBorder phase={1} ratio ={this.state.ratio} updateRatio ={this.updateRatio} toggleRatioLock = {this.toggleRatioLock} lock = {this.state.lock}/>,
       <SelectSize phase={2} resolution = {this.state.resolution} updateResolution = {this.updateResolution} setUnits={this.setUnits} unit={this.state.unit} updateUnitType={this.updateUnitType} getUnits={this.getUnits}/>,
-      <SelectStyle phase={3} tree={this.state.styleTree} collapseFunc={this.toggleStyleTreeCollapse} toggleStyleChoice={this.toggleStyleChoice} mapType={this.state.mapStyle} setMapStyle={this.setMapStyle}/>
+      <SelectStyle phase={3} tree={this.state.styleTree} collapseFunc={this.toggleStyleTreeCollapse} toggleStyleChoice={this.toggleStyleChoice} mapType={this.state.mapStyle} setMapStyle={this.setMapStyle}/>,
+      <ViewPoster phase={4} downloadUrl={posterDownloadUrl}/>
     ]
 
     const styleNexts = () => {
@@ -440,14 +455,28 @@ class App extends Component {
     }
 
     const nextButtons = [
-      <NextButton click={() => this.setState({ phase: SIZE_PHASE})}/>,
+      <NextButton click={() => {
+        const bounds = myMap.getBounds();
+        this.setState({
+          phase: SIZE_PHASE,
+          bounds1: {
+            northWestLatLng: {lat: bounds.getNorthEast().lat(), lng: bounds.getSouthWest().lng()},
+            southEastLatLng: {lat: bounds.getSouthWest().lat(), lng: bounds.getNorthEast().lng()},
+          },
+        });
+      }}/>,
       <NextButton test='Get It!!' click={() => this.getInfo()}/>,
-      styleNexts()
+      styleNexts(),
+      <div></div>
     ]
+
 
     return (
       <div id="boundsContainer">
         <div id="mapDisplayArea">
+          <div id='poster-wrapper'>
+            <img id='poster-image'></img>
+          </div>
           <div id='sampleWrapper'>
             <img id='mypic'></img>
           </div>

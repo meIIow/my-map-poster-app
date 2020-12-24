@@ -63,8 +63,6 @@
   visibility: inherit;
 }
 
-
-
 #mypic {
   position: absolute;
   top: 50%;
@@ -78,6 +76,14 @@
   max-width: 85%;
   max-height: 85%;
   visibility: hidden;
+}
+
+#poster-wrapper {
+  position: absolute;
+  height: 100%;
+  width: 100%;
+  overflow: scroll;
+  z-index: 75;
 }
 
 /* Style the tab */

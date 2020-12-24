@@ -27,9 +27,7 @@ app.use(express.static(path.join(__dirname, '../public')));
 app.use(bodyParser.json());
 
 const getMapPoster = async (req, res, next) => {
-  console.log(req.body);
-  console.log(req.body.northWestLatLng);
-  console.log(req.body.southEastLatLng);
+  console.log("Poster Image Request", req.body);
   const border = Border.fromLatLng(
     req.body.northWestLatLng,
     req.body.southEastLatLng,
@@ -41,13 +39,14 @@ const getMapPoster = async (req, res, next) => {
     Tile.generateBorderSet(border).map(tile => {
       return { ...tile, url: request.generateImageUrl(tile) };
     }));
-  console.log(image.buffer);
+  //console.log(image.buffer);
 
   res.contentType('png');
   res.send(image.buffer);
 }
 
 const getFrameData = async (req, res, next) => {
+  console.log("Poster Info Request", req.body);
   const border = Border.fromLatLng(
     req.body.northWestLatLng,
     req.body.southEastLatLng,
@@ -63,7 +62,7 @@ const getFrameData = async (req, res, next) => {
 }
 
 const getPreviewTile = async (req, res, next) => {
-  console.log(req.body);
+  console.log("Poster Preview Request", req.body);
 
   const tile = Tile.generatePreviewTile(req.body.lat, req.body.lng, req.body.height, req.body.width, req.body.zoom);
   const request = new StaticMapHttpRequest(apiKey, req.body.style, req.body.mapType);
@@ -71,11 +70,10 @@ const getPreviewTile = async (req, res, next) => {
   image.context.fillStyle = 'red';
   image.context.fillRect(0, 0, tile.width,tile.height);
 
-  console.log("tile", tile);
+  console.log("Preview Tile", tile);
   await image.batchOverlay(
     [{ ...tile, url: request.generateImageUrl(tile) }]);
-
-    console.log(image.buffer);
+  //console.log(image.buffer);
 
   res.contentType('png');
   res.send(image.buffer);
