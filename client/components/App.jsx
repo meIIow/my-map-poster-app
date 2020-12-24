@@ -14,41 +14,55 @@ const SIZE_PHASE = 1;
 const STYLE_PHASE = 2;
 const FINAL_PHASE = 3;
 
-let myMap;
-let bounds;
-let center;
-let rawPosterData;
+/* Non-state global variabls: */
+// Google Map for setting or viewing Poster area.
+let gMap;
+// URL of a downloaded poster.
 let posterDownloadUrl;
 
+/* Sets initial state to reasonable defaults or stored values. */
 function getInitialState() {
   return {
+    // Controls overall poster map creation app flow.
     phase: 0,
-    bounds1: false,
+    // Unofficial lat/lng from initial set border.
+    boundsRaw: false,
+    // Official lat/lng from server analysis.
     bounds: false,
+    // Whether to lock border selection dimensions to a set ratio.
     lock: false,
-    mult2: .01,
+    // Ratio to optionally force on dimensions.
     ratio: { width: 3, height: 2 },
-    resolution: 200,
+    // Pixel x & y of initial border, to be official ratio for setting min size.
     dimensions: { x: 0, y: 0 },
+    // Units / dimensions: magic number to keep dimension ratio.
+    unitDimensionScale: .01,
+    // Pixels per Unit.
+    resolution: 200,
+    // Purely descriptive Unit - except Pixels, which forces resolution = 1.
     unit: 'Inches',
-    img: false, // stores image data
+    // Nested style object to apply to poster.
     styleTree: StyleTree.getDefault(),
-    mapStyle: "roadmap",
+    // Map Type (satellite img vs map, etc).
+    mapType: "roadmap",
+    // Pre-loaded style objects to choose.
     savedStyles: getStoredStyles(),
   };
 }
 
+/* Merges locally-saved and server default style object options */
 function getStoredStyles() {
   const storedStyles = JSON.parse(localStorage.getItem('styles'));
-  return { ...storedStyles, ...DefaultStyles };
+  return { ...DefaultStyles, ...storedStyles };
 }
 
+/* Entry point to the application. */
 class App extends Component {
   constructor(props) {
     super(props);
     this.state = getInitialState();
 
-    // Binding methods
+    // Bind App methods that may be passed as props.
     this.expandToFitRatio = this.expandToFitRatio.bind(this);
     this.updateRatio = this.updateRatio.bind(this);
     this.calculateMapResize = this.calculateMapResize.bind(this);
@@ -64,33 +78,18 @@ class App extends Component {
     this.getUnits = this.getUnits.bind(this);
     this.submit = this.submit.bind(this);
     this.getInfo = this.getInfo.bind(this);
-    this.infoOrSample = this.infoOrSample.bind(this);
     this.getSample = this.getSample.bind(this);
     this.toggleStyleTreeCollapse = this.toggleStyleTreeCollapse.bind(this);
     this.toggleStyleChoice = this.toggleStyleChoice.bind(this);
-    this.setMapStyle = this.setMapStyle.bind(this);
+    this.setMapType = this.setMapType.bind(this);
     this.saveMapStyle = this.saveMapStyle.bind(this);
     this.loadMapStyle = this.loadMapStyle.bind(this);
   }
 
-  bind() {
-    myMap.setOptions({
-      restriction: {
-        latLngBounds: myMap.getBounds(),
-        strictBounds: true
-      }
-    });
-  }
-
-  infoOrSample() {
-    console.log("xyz");
-    if (this.state.phase === 0) return this.getInfo();
-    this.getSample();
-  }
-
+  /* Retrieves a sample tile based on the current style and map location. */
   getSample() {
     const url = '/preview';
-    const center = myMap.getCenter();
+    const center = gMap.getCenter();
     const parcel = {
       lat: center.lat(),
       lng: center.lng(),
@@ -98,7 +97,7 @@ class App extends Component {
       width:  this.state.bounds.width,
       zoom: this.state.bounds.zoom,
       style: StyleTree.getStyleParams(this.state.styleTree),
-      mapType: this.state.mapStyle,
+      mapType: this.state.mapType,
     };
 
     fetch(url, {
@@ -123,11 +122,12 @@ class App extends Component {
     });
   }
 
+  /* Calculates info on zoom, dimensions, geo range and tiles for given area. */
   getInfo() {
     const url = '/border';
     const parcel = {
-      northWestLatLng: this.state.bounds1.northWestLatLng,
-      southEastLatLng: this.state.bounds1.southEastLatLng,
+      northWestLatLng: this.state.boundsRaw.northWestLatLng,
+      southEastLatLng: this.state.boundsRaw.southEastLatLng,
       height: Math.round(this.getUnits().y * this.state.resolution),
       width:  Math.round(this.getUnits().x * this.state.resolution),
       lock: this.state.lock,
@@ -152,16 +152,17 @@ class App extends Component {
     });
   }
 
+  /* Retrieves the final poster image. */
   submit() {
     const url = '/photo';
     const parcel = {
-      northWestLatLng: this.state.bounds1.northWestLatLng,
-      southEastLatLng: this.state.bounds1.southEastLatLng,
+      northWestLatLng: this.state.boundsRaw.northWestLatLng,
+      southEastLatLng: this.state.boundsRaw.southEastLatLng,
       height: Math.round(this.getUnits().y * this.state.resolution),
       width:  Math.round(this.getUnits().x * this.state.resolution),
       lock: this.state.lock,
       style: StyleTree.getStyleParams(this.state.styleTree),
-      mapType: this.state.mapStyle,
+      mapType: this.state.mapType,
     }
 
     fetch(url, {
@@ -184,7 +185,6 @@ class App extends Component {
       return Promise.reject(response.statusText);
     }).then((data) => {
       console.log(data);
-      rawPosterData = data;
       posterDownloadUrl = urlCreator.createObjectURL(data);
       document.getElementById('poster-image').src = posterDownloadUrl;
       this.setState({phase: FINAL_PHASE});
@@ -208,10 +208,10 @@ class App extends Component {
     });
   }
 
-  setMapStyle(style) {
+  setMapType(style) {
     console.log("Setting map style: " + style);
     this.setState({
-      mapStyle: style,
+      mapType: style,
     });
   }
 
@@ -239,21 +239,21 @@ class App extends Component {
   }
 
   getUnits() {
-    // Rounded to nearest thousandth
+    // Rounded to nearest thousandth.
     return {
-      x: (Math.round((this.state.dimensions.x * this.state.mult2 + Number.EPSILON) * 1000) / 1000),
-      y: (Math.round((this.state.dimensions.y * this.state.mult2 + Number.EPSILON) * 1000) / 1000)
+      x: (Math.round((this.state.dimensions.x * this.state.unitDimensionScale + Number.EPSILON) * 1000) / 1000),
+      y: (Math.round((this.state.dimensions.y * this.state.unitDimensionScale + Number.EPSILON) * 1000) / 1000)
     }
   }
 
   updateUnitType(unit) {
-    let mult2 = this.state.mult2;
+    let unitDimensionScale = this.state.unitDimensionScale;
     let resolution = this.state.resolution;
     if (unit === "Pixels") {
-      mult2 = mult2 * resolution;
+      unitDimensionScale = unitDimensionScale * resolution;
       resolution = 1;
     }
-    return this.setState({unit, mult2, resolution});
+    return this.setState({unit, unitDimensionScale, resolution});
   }
 
   updateResolution(resolution) {
@@ -292,8 +292,8 @@ class App extends Component {
   }
 
   setUnits(width, height) {
-    const mult2 = (width !== null) ? width / this.state.dimensions.x : height / this.state.dimensions.y;
-    this.setState({mult2});
+    const unitDimensionScale = (width !== null) ? width / this.state.dimensions.x : height / this.state.dimensions.y;
+    this.setState({unitDimensionScale});
   }
 
   resizeToFit(dimensions, ratio) {
@@ -332,11 +332,11 @@ class App extends Component {
 
   resizeMap() {
     if (this.state.phase !== 0) return;
-    const myMap = document.getElementById('mapWrapper');
+    const gMap = document.getElementById('mapWrapper');
     console.log("Resize triggered.");
     console.log(this.state);
 
-    const { height, width } = myMap.getBoundingClientRect();
+    const { height, width } = gMap.getBoundingClientRect();
     console.log("height = " + height, "width = " + width);
     if (!this.state.lock) return this.setState({ dimensions: {x: width, y: height} });
     const updatedDimensions = this.calculateMapResize(width, height);
@@ -357,9 +357,9 @@ class App extends Component {
   syncMap() {
     const mapWrapper = document.getElementById('mapWrapper');
     const mapBorder = document.getElementById('mapBorder');
-    if (!mapWrapper || !mapBorder || !myMap) return; // Ignore if not yet loaded.
+    if (!mapWrapper || !mapBorder || !gMap) return; // Ignore if not yet loaded.
     mapBorder.style.resize = (this.state.phase === BORDER_PHASE) ? "both" : 'none';
-    myMap.setOptions({
+    gMap.setOptions({
       disableDefaultUI: (this.state.phase !== BORDER_PHASE),
       draggable: (this.state.phase !== SIZE_PHASE),
     });
@@ -385,7 +385,7 @@ class App extends Component {
       sample.style.visibility = "inherit";
 
       // Bound map to the exact area and zoom the actual map will contain.
-      myMap.setOptions({
+      gMap.setOptions({
         restriction: {
           latLngBounds: new google.maps.LatLngBounds(
             new google.maps.LatLng(this.state.bounds.bounds.south.value, this.state.bounds.bounds.west.value),
@@ -423,7 +423,7 @@ class App extends Component {
       streetViewControl: false,
       tilt: 0
     });
-    myMap = map;
+    gMap = map;
 
     const input = document.getElementById('pac-input');
     const center = document.getElementById('re-center');
@@ -463,9 +463,9 @@ class App extends Component {
     console.log("App page rendering...")
 
     const selects = [
-      <SelectBorder phase={1} ratio ={this.state.ratio} updateRatio ={this.updateRatio} toggleRatioLock = {this.toggleRatioLock} lock = {this.state.lock}/>,
+      <SelectBorder phase={1} ratio={this.state.ratio} updateRatio ={this.updateRatio} toggleRatioLock = {this.toggleRatioLock} lock = {this.state.lock}/>,
       <SelectSize phase={2} resolution = {this.state.resolution} updateResolution = {this.updateResolution} setUnits={this.setUnits} unit={this.state.unit} updateUnitType={this.updateUnitType} getUnits={this.getUnits}/>,
-      <SelectStyle phase={3} tree={this.state.styleTree} collapseFunc={this.toggleStyleTreeCollapse} toggleStyleChoice={this.toggleStyleChoice} mapType={this.state.mapStyle} setMapStyle={this.setMapStyle} defaultStyles={this.state.savedStyles} loadMapStyle={this.loadMapStyle} saveMapStyle={this.saveMapStyle}/>,
+      <SelectStyle phase={3} tree={this.state.styleTree} collapseFunc={this.toggleStyleTreeCollapse} toggleStyleChoice={this.toggleStyleChoice} mapType={this.state.mapType} setMapType={this.setMapType} defaultStyles={this.state.savedStyles} loadMapStyle={this.loadMapStyle} saveMapStyle={this.saveMapStyle}/>,
       <ViewPoster phase={4} downloadUrl={posterDownloadUrl}/>
     ]
 
@@ -480,10 +480,10 @@ class App extends Component {
 
     const nextButtons = [
       <NextButton click={() => {
-        const bounds = myMap.getBounds();
+        const bounds = gMap.getBounds();
         this.setState({
           phase: SIZE_PHASE,
-          bounds1: {
+          boundsRaw: {
             northWestLatLng: {lat: bounds.getNorthEast().lat(), lng: bounds.getSouthWest().lng()},
             southEastLatLng: {lat: bounds.getSouthWest().lat(), lng: bounds.getNorthEast().lng()},
           },
@@ -494,6 +494,11 @@ class App extends Component {
       <div></div>
     ]
 
+    const decrementPhase = () => {
+      return this.setState({
+        phase: (this.state.phase > 0) ? this.state.phase - 1 : this.state.phase,
+      })
+    }
 
     return (
       <div id="boundsContainer">
@@ -504,12 +509,18 @@ class App extends Component {
           <div id='sampleWrapper'>
             <img id='mypic'></img>
           </div>
-          <div id="mapBorder" onMouseUp={() => {this.resizeMap()}}><div id="mapWrapper"></div></div>
+          <div id="mapBorder" onMouseUp={() => {this.resizeMap()}}>
+            <div id="mapWrapper"></div>
+          </div>
         </div>
         <div id="boundsOptions">
           {selects[this.state.phase]}
           {nextButtons[this.state.phase]}
-          <div><button class="tablinks" onClick={() =>this.setState({ phase: (this.state.phase > 0) ? this.state.phase - 1 : this.state.phase})}>Back!!</button></div>
+          <div>
+            <button class="tablinks" onClick={decrementPhase}>
+              Go Back
+            </button>
+          </div>
         </div>
       </div>
     );
