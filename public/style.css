@@ -33,6 +33,32 @@
   max-width: calc(100% - 100px);
 }
 
+#overlay-shader {
+  position: absolute;
+  left: 0;
+  top: 0;
+  margin: 0 auto;
+  width: 100%;
+  height: 100%;
+  opacity: 50%;
+  background-color: black;
+  z-index: 80;
+}
+
+#overlay-wrapper {
+  position: absolute;
+  left: 0;
+  top: 0;
+  margin: 0 auto;
+  width: 80%;
+  height: 80%;
+  z-index: 120;
+  top: 50%;
+  left: 50%;
+  background-color: green;
+  transform: translate(-50%, -50%);
+}
+
 #mapBorder {
   margin: 0 auto;
   width: 95%;

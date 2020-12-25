@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import NextButton from './Next.jsx';
+import Overlay from './Overlay.jsx';
 import SelectBorder from './SelectBorder.jsx';
 import SelectSize from './SelectSize.jsx';
 import SelectStyle from './SelectStyle.jsx';
@@ -25,6 +26,8 @@ function getInitialState() {
   return {
     // Controls overall poster map creation app flow.
     phase: 0,
+    // Whether to open the app Overlay component.
+    expandOverlay: false,
     // Unofficial lat/lng from initial set border.
     boundsRaw: false,
     // Official lat/lng from server analysis.
@@ -79,6 +82,8 @@ class App extends Component {
     this.submit = this.submit.bind(this);
     this.getInfo = this.getInfo.bind(this);
     this.getSample = this.getSample.bind(this);
+    this.openOverlay = this.openOverlay.bind(this);
+    this.closeOverlay = this.closeOverlay.bind(this);
     this.toggleStyleTreeCollapse = this.toggleStyleTreeCollapse.bind(this);
     this.toggleStyleChoice = this.toggleStyleChoice.bind(this);
     this.setMapType = this.setMapType.bind(this);
@@ -228,6 +233,14 @@ class App extends Component {
     this.setState({
       styleTree: StyleTree.highlight(JSON.parse(JSON.stringify(style)))
     });
+  }
+
+  closeOverlay() {
+    this.setState({ expandOverlay: false });
+  }
+
+  openOverlay() {
+    this.setState({ expandOverlay: true });
   }
 
   toggleRatioLock() {
@@ -500,8 +513,19 @@ class App extends Component {
       })
     }
 
+    const overlay = () => {
+      if (this.state.expandOverlay) {
+        return (
+          <div>
+            <Overlay closeOverlay={this.closeOverlay}/>
+          </div>
+        )
+      }
+    }
+
     return (
       <div id="boundsContainer">
+        {overlay()}
         <div id="mapDisplayArea">
           <div id='poster-wrapper'>
             <img id='poster-image'></img>
@@ -519,6 +543,9 @@ class App extends Component {
           <div>
             <button class="tablinks" onClick={decrementPhase}>
               Go Back
+            </button>
+            <button class="tablinks" onClick={this.openOverlay}>
+              Open Overlay
             </button>
           </div>
         </div>
