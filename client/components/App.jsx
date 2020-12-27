@@ -4,7 +4,8 @@ import Overlay from './Overlay.jsx';
 import SelectBorder from './SelectBorder.jsx';
 import SelectSize from './SelectSize.jsx';
 import SelectStyle from './SelectStyle.jsx';
-import StyleTree from './StyleTree.jsx';
+import StyleUtil from '../style/StyleUtil.jsx';
+import StyleTree from '../style/StyleTree.jsx';
 import ViewPoster from './ViewPoster.jsx';
 import DefaultStyles from './DefaultStyles.jsx';
 const urlCreator = window.URL || window.webkitURL;
@@ -201,7 +202,7 @@ class App extends Component {
   toggleStyleTreeCollapse(node) {
     node.COLLAPSE = !node.COLLAPSE;
     this.setState({
-      styleTree: StyleTree.highlight(JSON.parse(JSON.stringify(this.state.styleTree)))
+      styleTree: StyleUtil.highlight(StyleUtil.clone(this.state.styleTree)),
     });
   }
 
@@ -211,7 +212,7 @@ class App extends Component {
     console.log(node, set, value);
     console.log(this.state.styleTree);
     this.setState({
-      styleTree: StyleTree.highlight(JSON.parse(JSON.stringify(this.state.styleTree)))
+      styleTree: StyleUtil.highlight(StyleUtil.clone(this.state.styleTree)),
     });
   }
 
@@ -225,7 +226,7 @@ class App extends Component {
   saveMapStyle(name) {
     const savedStyles = JSON.parse(JSON.stringify(this.state.savedStyles));
     const style = JSON.parse(JSON.stringify(this.state.styleTree));
-    StyleTree.collapse(style);
+    StyleUtil.collapse(style);
     savedStyles[name] = style;
     localStorage.setItem('styles', JSON.stringify(savedStyles));
     this.setState({ savedStyles: savedStyles });
@@ -233,7 +234,7 @@ class App extends Component {
 
   loadMapStyle(style) {
     this.setState({
-      styleTree: StyleTree.highlight(JSON.parse(JSON.stringify(style)))
+      styleTree: StyleUtil.highlight(StyleUtil.clone(style)),
     });
   }
 

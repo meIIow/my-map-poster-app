@@ -1,107 +1,9 @@
 import React, { Component } from 'react';
-
-const FEATURE_TREE_TEMPLATE = {
-  administrative: {
-    country: {},
-    land_parcel: {},
-    locality: {},
-    neighborhood: {},
-    province: {}
-  },
-  landscape: {
-    man_made: {},
-    natural: {
-      landcover: {},
-      terrain: {}
-    }
-  },
-  poi: {
-    attraction: {},
-    business: {},
-    school: {},
-    government: {},
-    park: {},
-    medical: {},
-    place_of_worship: {},
-    sports_complex: {}
-  },
-  road: {
-    arterial: {},
-    highway: {},
-    local: {}
-  },
-  transit: {
-    line: {},
-    station: {
-      bus: {},
-      airport: {},
-      rail: {}
-    }
-  }
-}
-
-const ELEMENT_TREE_TEMPLATE = {
-  geometry: {
-    fill: {},
-    stroke: {}
-  },
-  labels: {
-    icon: {},
-    text: {
-      fill: {},
-      stroke: {}
-    }
-  }
-}
-
-const STYLE_RULES = {
-  /** Disable these (possibly forever, can set color directly instead)
-  hue: {
-    type: 'color',
-  }, // hex string, eg #RRGGBB
-  brightness: {
-    type: 'float',
-    min: -100,
-    max: 100,
-  }, // (-100, 100)
-  saturation: {
-    type: 'float',
-    min: -100,
-    max: 100,
-  }, // (-100, 100)
-  gamma: {
-    type: 'float',
-    min: 0.01,
-    max: 10,
-  }, // (0.01, 10)
-  **/
-  invert_lightness: {
-    type: 'bool',
-  },
-  visibility: {
-    type: 'choice',
-    options: ['on', 'off', 'simplified']
-  },
-  color: {
-    type: 'color', // hex string, eg #RRGGBB
-  },
-  width: {
-    type: 'int', // positive
-    min: 1
-  }
-}
-
-const addAll = (tree) => {
-  if (!Object.keys(tree).length) return tree;
-  for (const key in tree) {
-    tree[key] = addAll(tree[key]);
-  }
-  tree.all = {};
-  return tree;
-}
+import StyleUtil from '../style/StyleUtil.jsx';
+import Template from '../style/Template.jsx';
 
 const buildDefaultFeatureTreeFromTemplate = () => {
-  return buildDefaultFeatureTree("", FEATURE_TREE_TEMPLATE, ELEMENT_TREE_TEMPLATE, STYLE_RULES);
+  return buildDefaultFeatureTree("", Template.features, Template.elements, Template.rules);
 }
 
 const buildDefaultFeatureTree = (prefix, features, elements, rules) => {
@@ -134,7 +36,7 @@ const buildDefaultElementTree = (prefix, elements, rules) => {
 }
 
 const buildDefaultRuleTree = (rules) => {
-  const node =  JSON.parse(JSON.stringify(rules));
+  const node = StyleUtil.clone(rules);
   for (const rule in node) {
     node[rule].SET = false;
   }
@@ -221,17 +123,10 @@ const styleRuleToInput = (rule, valRef) => {
     console.log(valRef.VALUE);
     valRef.VALUE = e.target.value;
   };
-  // const valueOrDefault = (def) => {
-  //   return (val) => (val == undefined) ? def : val;
-  // };
-  // const valueOrBlack = valueOrDefault("#000000");
-  // const valueOrSimplified = valueOrDefault("simplified");
-  // const valueOrFalse = valueOrDefault(false);
 
   const updateCheck = (e) => valRef.VALUE = e.target.checked;
   if (rule.type === 'color') return <input disabled={set} type='color' defaultValue={valRef.VALUE} onInput={updateVal}></input>
   if (rule.type === 'bool') return <input disabled={set} type='checkbox' defaultChecked={valRef.VALUE} onInput={updateCheck}></input>
-  //if (rule.type === 'float') return <input disabled={set} type='range' value={rule.VALUE} onInput={updateVal} min={rule.min} max={rule.max}></input>
   if (rule.type === 'int') return <input disabled={set} type='number' defaultValue={valRef.VALUE} onInput={updateVal} min={rule.min} max={rule.max} step='1'></input>
   if (rule.type === 'choice') return (
       <select onInput={updateVal} disabled={set} defaultValue={valRef.VALUE}>
@@ -243,26 +138,8 @@ const styleRuleToInput = (rule, valRef) => {
   console.log('This style rule is unsupported: ', rule);
 }
 
-const convertStylesToMapParams = (styles) => {
-  // f, e, tree, rule, value
-  let params = "";
-  console.log(styles)
-  for (const style of styles) {
-    console.log(style)
-    const val = (style.rule==="color") ? colorToHex(style.value) : style.value;
-    const param = "&style=feature:" + style.f + "|element:" + style.e + "|" + style.rule + ":" + val;
-    console.log(param);
-    params += param;
-  }
-  return params;
-}
-
-const colorToHex = (color) => {
-  return "0x" + color.substring(1);
-}
-
 const pullStylesFromStyleTree = (tree) => {
-  const specs = buildDefaultElementTree("", ELEMENT_TREE_TEMPLATE, STYLE_RULES);
+  const specs = buildDefaultElementTree("", Template.elements, Template.rules);
   const styles = [];
   pullStylesFromFeatureTree("all", tree, specs, styles);
   return styles;
@@ -276,10 +153,6 @@ const pullStylesFromFeatureTree = (f, tree, oldSpecs, styles) => {
 }
 
 const pullStylesFromElementTree = (f, e, tree, specs, styles) => {
-  // console.log(f);
-  // console.log(e);
-  // console.log(tree);
-  // console.log(specs);
   for (const rule in tree.RULES) {
     if (tree.RULES[rule].SET && tree.RULES[rule].VALUE != specs.RULES[rule].VALUE) {
       styles.push({f, e, rule, value: tree.RULES[rule].VALUE});
@@ -299,61 +172,28 @@ const propagateSpecs = (specs, rule, value) => {
   }
 }
 
-const updateHighlights = (styleTree) => {
-  styleTree.HIGHLIGHT = false;
-  if ("FEATURES" in styleTree) {
-    for (const feature in styleTree.FEATURES) {
-      updateHighlights(styleTree.FEATURES[feature]);
-      if (styleTree.FEATURES[feature].HIGHLIGHT) { styleTree.HIGHLIGHT = true }
-    }
+const convertStylesToMapParams = (styles) => {
+  let params = "";
+  console.log(styles)
+  for (const style of styles) {
+    console.log(style)
+    const val = (style.rule==="color") ? colorToHex(style.value) : style.value;
+    const param = "&style=feature:" + style.f + "|element:" + style.e + "|" + style.rule + ":" + val;
+    console.log(param);
+    params += param;
   }
-  if ("ELEMENT" in styleTree) {
-    updateHighlights(styleTree.ELEMENT)
-    if (styleTree.ELEMENT.HIGHLIGHT) { styleTree.HIGHLIGHT = true }
-  }
-  if ("ELEMENTS" in styleTree) {
-    for (const element in styleTree.ELEMENTS) {
-      updateHighlights(styleTree.ELEMENTS[element]);
-      if (styleTree.ELEMENTS[element].HIGHLIGHT) { styleTree.HIGHLIGHT = true }
-    }
-  }
-  if ("RULES" in styleTree) {
-    for (const rule in styleTree.RULES) {
-      if (styleTree.RULES[rule].SET) { styleTree.HIGHLIGHT = true }
-    }
-  }
-  return styleTree;
+  return params;
 }
 
-const collapseTree = (tree, depth) => {
-  if (tree.COLLAPSE === false && depth > 0) {
-    tree.COLLAPSE = true;
-  }
-  if ("FEATURES" in tree) {
-    for (const feature in tree.FEATURES) {
-      collapseTree(tree.FEATURES[feature], depth + 1);
-    }
-  }
-  if ("ELEMENT" in tree) {
-    collapseTree(tree.ELEMENT, 0)
-  }
-  if ("ELEMENTS" in tree) {
-    for (const element in tree.ELEMENTS) {
-      collapseTree(tree.ELEMENTS[element], depth + 1);
-    }
-  }
+const colorToHex = (color) => {
+  return "0x" + color.substring(1);
 }
 
 const StyleTree = {
-  // feature: addAll(FEATURE_TREE_TEMPLATE),
-  // element: addAll(ELEMENT_TREE_TEMPLATE),
-  rule: STYLE_RULES,
-  getDefault: () => buildDefaultFeatureTreeFromTemplate(),
-  render: (tree, collapseFunc, toggleStyleChoice) => createFeatureStyleTree(tree, collapseFunc, toggleStyleChoice),
   getStyles: (tree) => pullStylesFromStyleTree(tree),
   getStyleParams: (tree) => convertStylesToMapParams(pullStylesFromStyleTree(tree)),
-  highlight: (tree) => updateHighlights(tree),
-  collapse: (tree) => collapseTree(tree, 0),
+  getDefault: () => buildDefaultFeatureTreeFromTemplate(),
+  render: (tree, collapseFunc, toggleStyleChoice) => createFeatureStyleTree(tree, collapseFunc, toggleStyleChoice),
 }
 
 export default StyleTree;
