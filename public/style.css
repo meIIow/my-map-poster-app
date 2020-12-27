@@ -89,7 +89,7 @@
   visibility: inherit;
 }
 
-#mypic {
+#sample-pic {
   position: absolute;
   top: 50%;
   left: 50%;
@@ -101,7 +101,7 @@
   /* TODO: hide overflow, don't resize */
   max-width: 85%;
   max-height: 85%;
-  visibility: hidden;
+  display: none;
 }
 
 #poster-wrapper {

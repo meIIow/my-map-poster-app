@@ -99,7 +99,7 @@ const SelectStyle = (props) => {
           const inputId = rule + "-map";
           return (
             <div>
-              <input checked={props.mapType == rule} type="radio" id={inputId} onChange={(e) => props.setMapStyle(e.target.value)} name="map-type" value={rule}></input>
+              <input checked={props.mapType == rule} type="radio" id={inputId} onChange={(e) => props.setMapType(e.target.value)} name="map-type" value={rule}></input>
               <label for={inputId}>{rule}</label>
             </div>
           )

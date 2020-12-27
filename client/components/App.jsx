@@ -28,9 +28,11 @@ function getInitialState() {
     phase: 0,
     // Whether to open the app Overlay component.
     expandOverlay: false,
-    // Unofficial lat/lng from initial set border.
+    // Whether to show the style sample.
+    showSample: false,
+    // Unofficial lat/lng, zoom and center from initial set border.
     boundsRaw: false,
-    // Official lat/lng from server analysis.
+    // Official lat/lng and zoom from server analysis.
     bounds: false,
     // Whether to lock border selection dimensions to a set ratio.
     lock: false,
@@ -86,6 +88,7 @@ class App extends Component {
     this.closeOverlay = this.closeOverlay.bind(this);
     this.toggleStyleTreeCollapse = this.toggleStyleTreeCollapse.bind(this);
     this.toggleStyleChoice = this.toggleStyleChoice.bind(this);
+    this.hideSample = this.hideSample.bind(this);
     this.setMapType = this.setMapType.bind(this);
     this.saveMapStyle = this.saveMapStyle.bind(this);
     this.loadMapStyle = this.loadMapStyle.bind(this);
@@ -117,8 +120,8 @@ class App extends Component {
         console.log(response)
         response.blob().then(data => {
           console.log("data", data);
-          document.getElementById('mypic').src = urlCreator.createObjectURL(data);
-          return Promise.resolve();
+          document.getElementById('sample-pic').src = urlCreator.createObjectURL(data);
+          return this.setState({showSample: true});
         });
       }
       console.log("prollem");
@@ -183,7 +186,6 @@ class App extends Component {
 
         return response.blob().then(data => {
           console.log(data);
-          //document.getElementById('mypic').src = urlCreator.createObjectURL(data);
           return Promise.resolve(data);
         })
       }
@@ -241,6 +243,10 @@ class App extends Component {
 
   openOverlay() {
     this.setState({ expandOverlay: true });
+  }
+
+  hideSample() {
+    this.setState({ showSample: false });
   }
 
   toggleRatioLock() {
@@ -331,7 +337,6 @@ class App extends Component {
     const heightOverflowPercent = (dimensions.y - maxHeight) / maxHeight;
 
     if (widthOverflowPercent <= 0 && heightOverflowPercent <= 0) {
-      console.log("No overflow");
       return dimensions;
     }
 
@@ -347,83 +352,97 @@ class App extends Component {
     if (this.state.phase !== 0) return;
     const gMap = document.getElementById('mapWrapper');
     console.log("Resize triggered.");
-    console.log(this.state);
 
     const { height, width } = gMap.getBoundingClientRect();
     console.log("height = " + height, "width = " + width);
     if (!this.state.lock) return this.setState({ dimensions: {x: width, y: height} });
     const updatedDimensions = this.calculateMapResize(width, height);
 
-    console.log("dimensions", updatedDimensions);
-    console.log(this.state.dimensions);
+    console.log("New Dimensions", updatedDimensions);
+    console.log("Previous Dimensions", this.state.dimensions);
     this.setState({ dimensions: updatedDimensions });
   }
 
-  snapToDimensions() {
-    if (this.state.phase !== 0) return;
-    const border = document.getElementById('mapBorder');
-    border.style.width = this.state.dimensions.x + MAP_BORDER_WIDTH + 'px';
-    border.style.height = this.state.dimensions.y + MAP_BORDER_WIDTH + 'px';
+  /* Conditionally set map behavior based on Phase */
+  setMapBehavior() {
+    const restrictFullMap = this.state.phase >= STYLE_PHASE;
+    const lockBorderMap = this.state.phase == SIZE_PHASE;
+    const unlockMapInteraction = this.state.phase == BORDER_PHASE;
+
+    let restriction = null;
+    if (restrictFullMap) restriction = {
+      latLngBounds: new google.maps.LatLngBounds(
+        new google.maps.LatLng(this.state.bounds.bounds.south.value, this.state.bounds.bounds.west.value),
+        new google.maps.LatLng(this.state.bounds.bounds.north.value, this.state.bounds.bounds.east.value)),
+      strictBounds: true
+    };
+
+    const mapOptions = {
+      disableDefaultUI: (!unlockMapInteraction),
+      draggable: (!lockBorderMap),
+      restriction: restriction,
+      minZoom: (restrictFullMap) ? this.state.bounds.zoom : null,
+      maxZoom: (restrictFullMap) ? this.state.bounds.zoom: null,
+    };
+    if (restrictFullMap) mapOptions.zoom = this.state.bounds.zoom;
+
+    gMap.setOptions(mapOptions);
   }
 
-  // Derives map, wrapper and border state from app state
-  syncMap() {
-    const mapWrapper = document.getElementById('mapWrapper');
-    const mapBorder = document.getElementById('mapBorder');
-    if (!mapWrapper || !mapBorder || !gMap) return; // Ignore if not yet loaded.
-    mapBorder.style.resize = (this.state.phase === BORDER_PHASE) ? "both" : 'none';
-    gMap.setOptions({
-      disableDefaultUI: (this.state.phase !== BORDER_PHASE),
-      draggable: (this.state.phase !== SIZE_PHASE),
-    });
-
-    const sample = document.getElementById('mypic');
+  /* Conditionally set map behavior based on Phase */
+  setMapDisplay(mapWrapper, mapBorder) {
+    const sample = document.getElementById('sample-pic');
     const poster = document.getElementById('poster-wrapper');
 
-    sample.style.visibility = "hidden";
-    poster.style.display = "none";
+    const maximizeMap = this.state.phase >= STYLE_PHASE;
+    const showSample = this.state.phase == STYLE_PHASE && this.state.showSample;
+    const showPoster = this.state.phase == FINAL_PHASE;
 
-    // May be better to just render a whole separate map after size is chosen...
-    if (this.state.phase === STYLE_PHASE) {
-      // Effectively remove border and expand map to take up the entire space.
-      // Will need to extract this and potentially change depending on phase
-      // ...or back will begin to fail prolly...
+
+    sample.style.display = (showSample) ? "inherit": "none";
+    poster.style.display = (showPoster) ? "inherit": "none";
+
+    if (maximizeMap) {
       mapBorder.style.width = '100%';
       mapBorder.style.height = '100%';
       mapWrapper.style.width = '100%';
       mapWrapper.style.height = '100%';
       mapWrapper.style.maxWidth = this.state.bounds.width + 'px';
       mapWrapper.style.maxHeight = this.state.bounds.height + 'px';
-
-      sample.style.visibility = "inherit";
-
-      // Bound map to the exact area and zoom the actual map will contain.
-      gMap.setOptions({
-        restriction: {
-          latLngBounds: new google.maps.LatLngBounds(
-            new google.maps.LatLng(this.state.bounds.bounds.south.value, this.state.bounds.bounds.west.value),
-            new google.maps.LatLng(this.state.bounds.bounds.north.value, this.state.bounds.bounds.east.value)),
-          strictBounds: true
-        },
-        zoom: this.state.bounds.zoom,
-        minZoom: this.state.bounds.zoom,
-        maxZoom: this.state.bounds.zoom,
-      });
-    }
-    if (this.state.phase === FINAL_PHASE) {
-      poster.style.display = "inherit";
+    } else {
+      this.snapToDimensions(mapBorder);
+      mapWrapper.style.maxWidth = '100%';
+      mapWrapper.style.maxHeight = '100%';
+      mapWrapper.style.maxWidth = 'calc(100% - 25px)';
+      mapWrapper.style.maxHeight = 'calc(100% - 25px)';
     }
   }
 
+  snapToDimensions(border) {
+    border.style.width = this.state.dimensions.x + MAP_BORDER_WIDTH + 'px';
+    border.style.height = this.state.dimensions.y + MAP_BORDER_WIDTH + 'px';
+  }
+
+  /* Derives map, wrapper and border state from app state. */
+  syncMap() {
+    const mapWrapper = document.getElementById('mapWrapper');
+    const mapBorder = document.getElementById('mapBorder');
+    if (!mapWrapper || !mapBorder || !gMap) return; // Ignore if not yet loaded.
+    mapBorder.style.resize = (this.state.phase === BORDER_PHASE) ? "both" : 'none';
+    this.setMapBehavior();
+    this.setMapDisplay(mapWrapper, mapBorder);
+  }
+
   componentDidUpdate() {
-    this.snapToDimensions();
     this.syncMap();
   }
 
   componentDidMount() {
     const mapWrapper = document.getElementById('mapWrapper');
     const mapBorder = document.getElementById('mapBorder');
-    const map = new google.maps.Map(mapWrapper, {
+
+    // Initialize map to Sydney, Australia with basic settings.
+    gMap = new google.maps.Map(mapWrapper, {
       center: {lat:-33.8707972, lng: 151.2070504},
       zoom: 13,
       clickableIcons: false,
@@ -436,32 +455,8 @@ class App extends Component {
       streetViewControl: false,
       tilt: 0
     });
-    gMap = map;
 
-    const input = document.getElementById('pac-input');
-    const center = document.getElementById('re-center');
-    const autocomplete = new google.maps.places.Autocomplete(input);
-    // Set the data fields to return when the user selects a place.
-    autocomplete.setFields(['geometry.location', 'name']);
-
-    autocomplete.addListener('place_changed', function() {
-      var place = autocomplete.getPlace();
-      if (!place.geometry.location) {
-        return window.alert(`No details available for input: ${place.name}`);
-      }
-      map.setCenter(place.geometry.location);
-    });
-
-    center.addEventListener('click', function(e) {
-      console.log('something');
-      //if (e.key !== 'Enter') return;
-      var place = autocomplete.getPlace();
-      if (!place.geometry.location) {
-        return window.alert(`No details available for input: ${place.name}`);
-      }
-      map.setCenter(place.geometry.location);
-    });
-
+    // Start off map at half size of possible area.
     const { height, width } = document.getElementById('mapDisplayArea').getBoundingClientRect();
     console.log(height, width);
     mapBorder.style.height = height / 2 + 'px';
@@ -469,6 +464,23 @@ class App extends Component {
     mapBorder.style.resize = "both";
     mapBorder.style.overflow = "auto";
 
+    // Bind Auto-Complete location search to map.
+    // Assumes border selection Phase on component mount.
+    const input = document.getElementById('pac-input');
+    const center = document.getElementById('re-center');
+    const autocomplete = new google.maps.places.Autocomplete(input);
+    autocomplete.setFields(['geometry.location', 'name']);
+    const setCenterToPlace = () => {
+      const place = autocomplete.getPlace();
+      if (!place.geometry.location) {
+        return window.alert(`No details available for input: ${place.name}`);
+      }
+      gMap.setCenter(place.geometry.location);
+    }
+    autocomplete.addListener('place_changed', setCenterToPlace);
+    center.addEventListener('click', setCenterToPlace);
+
+    // Persist map size info to state.
     this.resizeMap();
   }
 
@@ -478,7 +490,7 @@ class App extends Component {
     const selects = [
       <SelectBorder phase={1} ratio={this.state.ratio} updateRatio ={this.updateRatio} toggleRatioLock = {this.toggleRatioLock} lock = {this.state.lock}/>,
       <SelectSize phase={2} resolution = {this.state.resolution} updateResolution = {this.updateResolution} setUnits={this.setUnits} unit={this.state.unit} updateUnitType={this.updateUnitType} getUnits={this.getUnits}/>,
-      <SelectStyle phase={3} tree={this.state.styleTree} collapseFunc={this.toggleStyleTreeCollapse} toggleStyleChoice={this.toggleStyleChoice} mapType={this.state.mapType} setMapType={this.setMapType} defaultStyles={this.state.savedStyles} loadMapStyle={this.loadMapStyle} saveMapStyle={this.saveMapStyle}/>,
+      <SelectStyle phase={3} tree={this.state.styleTree} collapseFunc={this.toggleStyleTreeCollapse} toggleStyleChoice={this.toggleStyleChoice} mapType={this.state.mapType} hideSample={this.hideSample} setMapType={this.setMapType} defaultStyles={this.state.savedStyles} loadMapStyle={this.loadMapStyle} saveMapStyle={this.saveMapStyle}/>,
       <ViewPoster phase={4} downloadUrl={posterDownloadUrl}/>
     ]
 
@@ -486,6 +498,7 @@ class App extends Component {
       return (
         <div>
           <NextButton text='Get a Sample!' click={() => this.getSample()}/>
+          <NextButton text='Hide Sample!' click={() => this.hideSample()}/>
           <NextButton text='Get Poster Already!!' click={() => this.submit()}/>
         </div>
       )
@@ -497,6 +510,8 @@ class App extends Component {
         this.setState({
           phase: SIZE_PHASE,
           boundsRaw: {
+            center: gMap.getCenter(),
+            zoom: gMap.getZoom(),
             northWestLatLng: {lat: bounds.getNorthEast().lat(), lng: bounds.getSouthWest().lng()},
             southEastLatLng: {lat: bounds.getSouthWest().lat(), lng: bounds.getNorthEast().lng()},
           },
@@ -508,6 +523,17 @@ class App extends Component {
     ]
 
     const decrementPhase = () => {
+      if (this.state.phase == STYLE_PHASE) {
+        console.log(this.state.boundsRaw);
+        gMap.setOptions({
+          restriction: null,
+          minZoom: null,
+          maxZoom: null,
+          center: this.state.boundsRaw.center,
+          zoom: this.state.boundsRaw.zoom,
+        });
+        console.log(gMap.getZoom());
+      }
       return this.setState({
         phase: (this.state.phase > 0) ? this.state.phase - 1 : this.state.phase,
       })
@@ -531,7 +557,7 @@ class App extends Component {
             <img id='poster-image'></img>
           </div>
           <div id='sampleWrapper'>
-            <img id='mypic'></img>
+            <img id='sample-pic'></img>
           </div>
           <div id="mapBorder" onMouseUp={() => {this.resizeMap()}}>
             <div id="mapWrapper"></div>
