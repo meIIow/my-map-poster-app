@@ -60,7 +60,7 @@ const createFeatureStyleTree= (tree, collapseFunc, toggleStyleChoice) => {
               <span class={dropClasses} onClick={(e) => collapseFunc(tree.FEATURES[feature])}>{feature}</span>
               {createFeatureStyleTree(tree.FEATURES[feature], collapseFunc, toggleStyleChoice)}
             </li>
-          )
+          );
         })}
       </ul>
     </div>
@@ -118,9 +118,6 @@ const createRulesStyleTree = (tree, toggle) => {
 const styleRuleToInput = (rule, valRef) => {
   const set = rule.SET;
   const updateVal = (e, f, g) => {
-    console.log(e, f, g);
-    console.log(e.target);
-    console.log(valRef.VALUE);
     valRef.VALUE = e.target.value;
   };
 

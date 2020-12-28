@@ -57,6 +57,8 @@ function getInitialState() {
     mapType: "roadmap",
     // Pre-loaded style objects to choose.
     savedStyles: getStoredStyles(),
+    // Extra style URL parameters to tack on.
+    extraStyleParams: '',
   };
 }
 
@@ -92,6 +94,7 @@ class App extends Component {
     this.openOverlay = this.openOverlay.bind(this);
     this.openStyleOverlay = this.openStyleOverlay.bind(this);
     this.closeOverlay = this.closeOverlay.bind(this);
+    this.setExtraStyleParams = this.setExtraStyleParams.bind(this);
     this.toggleStyleTreeCollapse = this.toggleStyleTreeCollapse.bind(this);
     this.toggleStyleChoice = this.toggleStyleChoice.bind(this);
     this.hideSample = this.hideSample.bind(this);
@@ -110,7 +113,7 @@ class App extends Component {
       height: this.state.bounds.height,
       width:  this.state.bounds.width,
       zoom: this.state.bounds.zoom,
-      style: StyleTree.getStyleParams(this.state.styleTree),
+      style: StyleTree.getStyleParams(this.state.styleTree) + this.state.extraStyleParams,
       mapType: this.state.mapType,
     };
 
@@ -174,7 +177,7 @@ class App extends Component {
       height: Math.round(this.getUnits().y * this.state.resolution),
       width:  Math.round(this.getUnits().x * this.state.resolution),
       lock: this.state.lock,
-      style: StyleTree.getStyleParams(this.state.styleTree),
+      style: StyleTree.getStyleParams(this.state.styleTree) + this.state.extraStyleParams,
       mapType: this.state.mapType,
     }
 
@@ -228,17 +231,17 @@ class App extends Component {
   }
 
   saveMapStyle(name) {
-    const savedStyles = JSON.parse(JSON.stringify(this.state.savedStyles));
-    const style = JSON.parse(JSON.stringify(this.state.styleTree));
+    const savedStyles = StyleUtil.clone(this.state.savedStyles);
+    const style = StyleUtil.clone(this.state.styleTree);
     StyleUtil.collapse(style);
-    savedStyles[name] = style;
+    savedStyles[name] = StyleUtil.strip(style);
     localStorage.setItem('styles', JSON.stringify(savedStyles));
     this.setState({ savedStyles: savedStyles });
   }
 
   loadMapStyle(style) {
     this.setState({
-      styleTree: StyleUtil.highlight(StyleUtil.clone(style)),
+      styleTree: StyleUtil.highlight(StyleUtil.merge(StyleTree.getDefault(), StyleUtil.clone(style))),
     });
   }
 
@@ -256,6 +259,11 @@ class App extends Component {
 
   hideSample() {
     this.setState({ showSample: false });
+  }
+
+  setExtraStyleParams(extraStyleParams) {
+    // TODO: Consider adding some checks here.
+    this.setState({ extraStyleParams });
   }
 
   toggleRatioLock() {
@@ -499,7 +507,7 @@ class App extends Component {
     const panels = [
       <SelectBorder phase={1} ratio={this.state.ratio} updateRatio={this.updateRatio} toggleRatioLock={this.toggleRatioLock} lock={this.state.lock} expandInstructions={this.openOverlay}/>,
       <SelectSize phase={2} resolution = {this.state.resolution} updateResolution = {this.updateResolution} setUnits={this.setUnits} unit={this.state.unit} updateUnitType={this.updateUnitType} getUnits={this.getUnits} expandInstructions={this.openOverlay}/>,
-      <SelectStyle phase={3} mapType={this.state.mapType} hideSample={this.hideSample} setMapType={this.setMapType} defaultStyles={this.state.savedStyles} loadMapStyle={this.loadMapStyle} saveMapStyle={this.saveMapStyle} expandInstructions={this.openOverlay} expandStyleOverlay={this.openStyleOverlay}/>,
+      <SelectStyle phase={3} mapType={this.state.mapType} hideSample={this.hideSample} setMapType={this.setMapType} defaultStyles={this.state.savedStyles} loadMapStyle={this.loadMapStyle} saveMapStyle={this.saveMapStyle} expandInstructions={this.openOverlay} extraStyleParams={this.state.extraStyleParams} setExtraStyleParams={this.setExtraStyleParams} expandStyleOverlay={this.openStyleOverlay}/>,
       <ViewPoster phase={4} downloadUrl={posterDownloadUrl}/>
     ];
 
@@ -603,5 +611,6 @@ class App extends Component {
     );
   }
 }
+
 
 export default App;

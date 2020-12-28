@@ -1,8 +1,6 @@
 import React, { Component } from 'react';
-import Instructions from './Instructions.jsx';
 
 const units = ['Inches', 'Feet', 'cm', 'Meters', 'Other', 'Pixels'];
-
 const unitTypeToName = (unit) => unit === 'other' ? 'units' : unit;
 
 const SelectSize = (props) => {

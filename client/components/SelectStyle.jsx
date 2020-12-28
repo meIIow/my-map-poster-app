@@ -9,6 +9,17 @@ const MAP_STYLE_OPTIONS = [
 ];
 
 const SelectStyle = (props) => {
+  const valRef = { VALUE: props.extraStyleParams };
+  const styleParamInput = document.getElementById("styleParamInput");
+  if (styleParamInput) valRef.VALUE = styleParamInput.value;
+  const setValRef = (e) => {
+    valRef.VALUE = e.target.value;
+  }
+  const setOrClear = (props.extraStyleParams) ? "Clear" : "Set";
+  const toggleParamInput = () => {
+    if (props.extraStyleParams) return props.setExtraStyleParams("");
+    return props.setExtraStyleParams(valRef.VALUE);
+  }
   return (
     <div>
       <h3> Step {props.stepNumber}: Map Styling </h3>
@@ -47,6 +58,10 @@ const SelectStyle = (props) => {
         <button onClick={() => props.expandStyleOverlay()}>
           Customize Styling
         </button>
+        <div>
+          <div><textarea id="styleParamInput" disabled={props.extraStyleParams} onInput={setValRef}>{valRef.VALUE}</textarea></div>
+          <div><button onClick={() => toggleParamInput()}>{setOrClear}</button></div>
+        </div>
       </div>
     </div>
   );

@@ -37,7 +37,8 @@ const FEATURE_TREE_TEMPLATE = {
       airport: {},
       rail: {}
     }
-  }
+  },
+  water: {},
 }
 
 const ELEMENT_TREE_TEMPLATE = {
