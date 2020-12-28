@@ -7,7 +7,9 @@ import SelectStyle from './SelectStyle.jsx';
 import StyleUtil from '../style/StyleUtil.jsx';
 import StyleTree from '../style/StyleTree.jsx';
 import ViewPoster from './ViewPoster.jsx';
-import DefaultStyles from './DefaultStyles.jsx';
+import CustomizeStyle from './CustomizeStyle.jsx';
+import Instructions from '../content/Instructions.jsx';
+import DefaultStyles from '../content/DefaultStyles.jsx';
 const urlCreator = window.URL || window.webkitURL;
 
 const MAP_BORDER_WIDTH = 25;
@@ -29,6 +31,8 @@ function getInitialState() {
     phase: 0,
     // Whether to open the app Overlay component.
     expandOverlay: false,
+    // Whether to show the style tree in the Overlay.
+    showStyleOverlay: false,
     // Whether to show the style sample.
     showSample: false,
     // Unofficial lat/lng, zoom and center from initial set border.
@@ -86,6 +90,7 @@ class App extends Component {
     this.getInfo = this.getInfo.bind(this);
     this.getSample = this.getSample.bind(this);
     this.openOverlay = this.openOverlay.bind(this);
+    this.openStyleOverlay = this.openStyleOverlay.bind(this);
     this.closeOverlay = this.closeOverlay.bind(this);
     this.toggleStyleTreeCollapse = this.toggleStyleTreeCollapse.bind(this);
     this.toggleStyleChoice = this.toggleStyleChoice.bind(this);
@@ -125,8 +130,7 @@ class App extends Component {
           return this.setState({showSample: true});
         });
       }
-      console.log("prollem");
-      console.log(response);
+      console.log("Problem:", response);
       return Promise.reject(response.statusText);
     });
   }
@@ -243,7 +247,11 @@ class App extends Component {
   }
 
   openOverlay() {
-    this.setState({ expandOverlay: true });
+    this.setState({ showStyleOverlay: false, expandOverlay: true });
+  }
+
+  openStyleOverlay() {
+    this.setState({ showStyleOverlay: true, expandOverlay: true });
   }
 
   hideSample() {
@@ -486,21 +494,29 @@ class App extends Component {
   }
 
   render() {
-    console.log("App page rendering...")
+    console.log("Rendering page from state", this.state);
 
-    const selects = [
-      <SelectBorder phase={1} ratio={this.state.ratio} updateRatio ={this.updateRatio} toggleRatioLock = {this.toggleRatioLock} lock = {this.state.lock}/>,
-      <SelectSize phase={2} resolution = {this.state.resolution} updateResolution = {this.updateResolution} setUnits={this.setUnits} unit={this.state.unit} updateUnitType={this.updateUnitType} getUnits={this.getUnits}/>,
-      <SelectStyle phase={3} tree={this.state.styleTree} collapseFunc={this.toggleStyleTreeCollapse} toggleStyleChoice={this.toggleStyleChoice} mapType={this.state.mapType} hideSample={this.hideSample} setMapType={this.setMapType} defaultStyles={this.state.savedStyles} loadMapStyle={this.loadMapStyle} saveMapStyle={this.saveMapStyle}/>,
+    const panels = [
+      <SelectBorder phase={1} ratio={this.state.ratio} updateRatio={this.updateRatio} toggleRatioLock={this.toggleRatioLock} lock={this.state.lock} expandInstructions={this.openOverlay}/>,
+      <SelectSize phase={2} resolution = {this.state.resolution} updateResolution = {this.updateResolution} setUnits={this.setUnits} unit={this.state.unit} updateUnitType={this.updateUnitType} getUnits={this.getUnits} expandInstructions={this.openOverlay}/>,
+      <SelectStyle phase={3} mapType={this.state.mapType} hideSample={this.hideSample} setMapType={this.setMapType} defaultStyles={this.state.savedStyles} loadMapStyle={this.loadMapStyle} saveMapStyle={this.saveMapStyle} expandInstructions={this.openOverlay} expandStyleOverlay={this.openStyleOverlay}/>,
       <ViewPoster phase={4} downloadUrl={posterDownloadUrl}/>
-    ]
+    ];
 
     const styleNexts = () => {
+      let hideSampleButton = null;
+      if (this.state.showSample) {
+        hideSampleButton = (
+          <div>
+            <NextButton text='Hide Sample!' click={() => this.hideSample()}/>
+          </div>
+        );
+      }
       return (
         <div>
-          <NextButton text='Get a Sample!' click={() => this.getSample()}/>
-          <NextButton text='Hide Sample!' click={() => this.hideSample()}/>
-          <NextButton text='Get Poster Already!!' click={() => this.submit()}/>
+          <NextButton text='Show Sample' click={() => this.getSample()}/>
+          {hideSampleButton}
+          <NextButton text='Get Poster' click={() => this.submit()}/>
         </div>
       )
     }
@@ -518,9 +534,9 @@ class App extends Component {
           },
         });
       }}/>,
-      <NextButton test='Get It!!' click={() => this.getInfo()}/>,
+      <NextButton click={() => this.getInfo()}/>,
       styleNexts(),
-      <div></div>
+      null
     ]
 
     const decrementPhase = () => {
@@ -541,17 +557,24 @@ class App extends Component {
     }
 
     const overlay = () => {
+      const styleCustomizationComponent = () => {
+        return (
+          <CustomizeStyle tree={this.state.styleTree} collapseFunc={this.toggleStyleTreeCollapse} toggleStyleChoice={this.toggleStyleChoice}/>
+        );
+      }
+      const overlayContent = (!(this.state.showStyleOverlay && this.state.phase == STYLE_PHASE)) ?
+        Instructions.displays[this.state.phase] : styleCustomizationComponent;
       if (this.state.expandOverlay) {
         return (
           <div>
-            <Overlay closeOverlay={this.closeOverlay}/>
+            <Overlay overlayContent={overlayContent} closeOverlay={this.closeOverlay}/>
           </div>
-        )
+        );
       }
     }
 
     return (
-      <div id="boundsContainer">
+      <div id="map-container">
         {overlay()}
         <div id="mapDisplayArea">
           <div id='poster-wrapper'>
@@ -564,16 +587,16 @@ class App extends Component {
             <div id="mapWrapper"></div>
           </div>
         </div>
-        <div id="boundsOptions">
-          {selects[this.state.phase]}
-          {nextButtons[this.state.phase]}
-          <div>
-            <button class="tablinks" onClick={decrementPhase}>
-              Go Back
-            </button>
-            <button class="tablinks" onClick={this.openOverlay}>
-              Open Overlay
-            </button>
+        <div id="map-panel-wrapper">
+          <div id="map-panel">
+            {panels[this.state.phase]}
+            <br/>
+            {nextButtons[this.state.phase]}
+            <div>
+              <button class="tablinks" onClick={decrementPhase}>
+                Go Back
+              </button>
+            </div>
           </div>
         </div>
       </div>

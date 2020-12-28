@@ -1,15 +1,13 @@
 import React, { Component } from 'react';
-import Instructions from './Instructions.jsx';
-
-const STEP_NAME = `View`;
-const INSTRUCTIONS = `Just look at it or whatever`;
 
 const ViewPoster = (props) => {
   return (
     <div>
-      <Instructions stepNumber={props.phase} stepName={STEP_NAME} instructions={INSTRUCTIONS}/>
+      <h3> Step {props.stepNumber}: View Map</h3>
+      <div>Here's the poster image! Download it, then refresh to make another.</div>
+      <br/>
       <div>
-        <button class="tablinks" onClick={() => window.open(props.downloadUrl)}>Tab It!</button>
+        <button class="tablinks" onClick={() => window.open(props.downloadUrl)}>Open in New Tab</button>
         <div></div>
         <a href={props.downloadUrl} download="poster-image.png">Download</a>
       </div>

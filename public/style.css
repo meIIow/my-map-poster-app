@@ -1,26 +1,20 @@
 #map {
-        height: 500px;
-      }
+  height: 500px;
+}
 
-/* #boundsContainer {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  width: 100%;
-  height: 0;
-  padding-top: 100%;
-  background-color: #91cbc0;
-} */
-
-#boundsOptions {
+#map-panel-wrapper {
   position: absolute;
   right: 0;
   top: 0;
   width: 20%;
   height: 100vh;
-  background-color: #91cbc0;
+  background-color: LightBlue;
   min-width: 100px;
+}
+
+#map-panel {
+  margin: 10px;
+  overflow: auto;
 }
 
 #mapDisplayArea {
@@ -28,7 +22,7 @@
   left: 0;
   top: 0;
   height: 100vh;
-  background-color: #2a2740;
+  background-color: Black;
   width: 80%;
   max-width: calc(100% - 100px);
 }
@@ -50,13 +44,23 @@
   left: 0;
   top: 0;
   margin: 0 auto;
+  border-style: outset;
+  border-width: 6px;
+  border-color: Grey;
   width: 80%;
   height: 80%;
   z-index: 120;
   top: 50%;
   left: 50%;
-  background-color: green;
+  background-color: LightBlue;
   transform: translate(-50%, -50%);
+  overflow: auto;
+}
+
+#overlay-close {
+  position: absolute;
+  right: 0;
+  top: 0;
 }
 
 #mapBorder {
@@ -67,13 +71,12 @@
   top: 50%;
   left: 50%;
   z-index: 9;
-  background-color: #91cbc0;
+  background-color: LightBlue;
   transform: translate(-50%, -50%);
   resize: both;
   overflow: hidden;
   max-height: 100%;
   max-width: 100%;
-  /* transform: translateX(-50%); */
 }
 
 #mapWrapper {
@@ -115,12 +118,12 @@
 /* Style the tab */
 .halfsies {
   float: left;
-  width: 50%;
+  width: 45%;
 }
 
 /* Style the tab */
 .units {
-  width: 100%;
+  width: 90%;
   overflow: hidden;
 }
 
@@ -129,35 +132,6 @@
   overflow: hidden;
   border: 1px solid #ccc;
   background-color: #f1f1f1;
-}
-
-/* Style the buttons that are used to open the tab content */
-.tab button {
-  background-color: inherit;
-  float: left;
-  width: 50%;
-  border: none;
-  outline: none;
-  cursor: pointer;
-  transition: 0.3s;
-}
-
-/* Change background color of buttons on hover */
-.tab button:hover {
-  background-color: #ddd;
-}
-
-/* Create an active/current tablink class */
-.tab button.active {
-  background-color: #ccc;
-}
-
-/* Style the tab content */
-.tabcontent {
-  display: none;
-  padding: 6px 12px;
-  border: 1px solid #ccc;
-  border-top: none;
 }
 
 #style-tree-container div ul {
@@ -213,7 +187,7 @@ ul {
 }
 
 .chosen {
-  background-color: red;
+  background-color: Moccasin;
 }
 
 .waterfall-rule {
@@ -229,7 +203,7 @@ ul {
 }
 
 .blank-element {
-  background-color: SkyBlue;
+  background-color: LightBlue;
 }
 
 .waterfall-feature {

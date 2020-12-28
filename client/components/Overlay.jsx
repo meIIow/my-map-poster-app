@@ -5,10 +5,10 @@ const Overlay = (props) => {
       <div>
         <div id='overlay-shader'></div>
         <div id='overlay-wrapper'>
-          Overlay, baby!
-          <button class="tablinks" onClick={() => props.closeOverlay()}>
-            Close Overlay
+          <button id="overlay-close" onClick={() => props.closeOverlay()}>
+            Close
           </button>
+          {props.overlayContent()}
         </div>
       </div>
   );

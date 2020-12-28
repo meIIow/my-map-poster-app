@@ -1,9 +1,6 @@
 import React, { Component } from 'react';
 import Instructions from './Instructions.jsx';
 
-const STEP_NAME = `Size`;
-const INSTRUCTIONS = `Next, choose the (minimum) size of your map. Either enter Pixel dimension direcectly, or specify the dimensions in units and choose a pixel density.`;
-
 const units = ['Inches', 'Feet', 'cm', 'Meters', 'Other', 'Pixels'];
 
 const unitTypeToName = (unit) => unit === 'other' ? 'units' : unit;
@@ -27,7 +24,11 @@ const SelectSize = (props) => {
 
   return (
     <div>
-      <Instructions stepNumber={props.phase} stepName={STEP_NAME} instructions={INSTRUCTIONS}/>
+      <h3> Step {props.stepNumber}: Map Resolution </h3>
+      <br/>
+      <div>
+        <button class="importantButton" onClick={() => props.expandInstructions()}>Instructions</button>
+      </div>
       <div>
         <div>
           <select name="units" id="unitSelect" onChange={(e) => props.updateUnitType(e.target.value)}>

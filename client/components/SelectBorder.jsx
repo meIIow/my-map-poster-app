@@ -1,13 +1,13 @@
 import React, { Component } from 'react';
-import Instructions from './Instructions.jsx';
-
-const STEP_NAME = `Border`;
-const INSTRUCTIONS = `Welcome! Start by choosing a general location for your map - then it's time to set the borders. Drag the map's frame to adjust the area your map contains, and drag on the map itself to change the center. You can lock a desired ratio to auto-snap the map to these dimensions after every change. Feel free to change the zoom level to get your whole map in frame - the actual zoom level of your final map will be determined by the resolution info you choose later. For now, just focus on capturing the area you would like your map to display!`;
 
 const SelectBorder = (props) => {
   return (
     <div>
-      <Instructions stepNumber={props.phase} stepName={STEP_NAME} instructions={INSTRUCTIONS}/>
+      <h3> Step {props.stepNumber}: Map Area </h3>
+      <br/>
+      <div>
+        <button class="importantButton" onClick={() => props.expandInstructions()}>Instructions</button>
+      </div>
       <input id="pac-input" type="text" placeholder="Enter a location"></input>
       <input id="re-center" type="button" value="Re-Center Map"></input>
       <div>width:</div>
