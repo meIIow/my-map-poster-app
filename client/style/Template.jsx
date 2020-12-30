@@ -27,7 +27,9 @@ const FEATURE_TREE_TEMPLATE = {
   },
   road: {
     arterial: {},
-    highway: {},
+    highway: {
+      controlled_access: {},
+    },
     local: {}
   },
   transit: {
