@@ -2,7 +2,7 @@ const Latitude = require('./coordinates/Latitude');
 const Longitude = require('./coordinates/Longitude');
 const Pixel = require('./coordinates/Pixel');
 const WebMercator = require('./coordinates/WebMercator');
-const conversion = require('./coordinates/conversion');
+const conversion = require('./coordinates/Conversion');
 
 
 /** Represents the boundaries of a map border, in any coordinate type. */

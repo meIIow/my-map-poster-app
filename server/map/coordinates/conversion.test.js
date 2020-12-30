@@ -3,7 +3,7 @@ const {
   radiansToDegrees,
   pixelDensityToZoom,
   zoomToPixelSpace,
-} = require('./conversion');
+} = require('./Conversion');
 
 describe('Zoom level ', () => {
   test('is never less than 0', () => {

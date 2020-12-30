@@ -1,4 +1,4 @@
-const { degreesToRadians, radiansToDegrees } = require('./conversion');
+const { degreesToRadians, radiansToDegrees } = require('./Conversion');
 
 // Defines possible ranges for Latitude value.
 const MAX_DEGREES_LATITUDE = 90;
