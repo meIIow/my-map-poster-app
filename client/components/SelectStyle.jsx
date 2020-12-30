@@ -27,6 +27,7 @@ const SelectStyle = (props) => {
       <div>
         <button class="importantButton" onClick={() => props.expandInstructions()}>Instructions</button>
       </div>
+      <br/>
       <div>
         Map Type
         {MAP_STYLE_OPTIONS.map((rule) => {
@@ -39,8 +40,9 @@ const SelectStyle = (props) => {
           )
         })}
       </div>
+      <br/>
       <div>
-        <div>Load Style:</div>
+        <div>Load Style</div>
         {Object.keys(props.defaultStyles).map((style) => {
           return (
             <button class="tablinks" onClick={() => props.loadMapStyle(props.defaultStyles[style])}>
@@ -49,16 +51,21 @@ const SelectStyle = (props) => {
           )
         })}
         <br/>
-        <input id="map-style-name" type='text'></input>
+        <br/>
+        <button onClick={() => props.expandStyleOverlay()}>
+          Customize Styling
+        </button>
+        <br/>
+        <br/>
+        <input id="map-style-name" type='text' placeholder="Styling Name"></input>
         <br/>
         <button class="importantButton" onClick={() => props.saveMapStyle(document.getElementById('map-style-name').value)}>
           Save Styling
         </button>
         <br/>
-        <button onClick={() => props.expandStyleOverlay()}>
-          Customize Styling
-        </button>
+        <br/>
         <div>
+          Direct url style params
           <div><textarea id="styleParamInput" disabled={props.extraStyleParams} onInput={setValRef}>{valRef.VALUE}</textarea></div>
           <div><button onClick={() => toggleParamInput()}>{setOrClear}</button></div>
         </div>

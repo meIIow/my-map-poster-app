@@ -16,7 +16,9 @@ const setBorderInstructions = () => {
       <div>
         <h3> Instructions: Select the Map Area</h3>
         <div>Welcome!</div>
+        <br/>
         <div>{borderCenterText}</div>
+        <br/>
         <div>{borderSetText}</div>
         <ul>
           {borderSetList.map((instruction) => {
@@ -34,7 +36,8 @@ const setBorderInstructions = () => {
 
 /* Instructions for Phase 2: Resolution Selection*/
 const mapResolutionText =
-  'Now choose the (minimum) size of your map. Either enter Pixel dimension directly, or specify the dimensions in units and choose a pixel density. Note that the actual units you use are purely descriptive: what matters is pixels-per-unit.'
+  'Now choose the (minimum) size of your map. Either enter Pixel dimension directly, or specify the dimensions in units and choose a pixel density.';
+const mapResolutionNote = 'Note that the actual units you use are purely descriptive: what matters is pixels-per-unit.';
 const mapResolutionClarification =
   'The resulting map will be at least the resolution specified, and will adhere to the borders and ratio from the previous step.'
 const setResolutionInstructions = () => {
@@ -42,7 +45,10 @@ const setResolutionInstructions = () => {
       <div>
         <h3> Instructions: Select the Map Resolution</h3>
         <div>{mapResolutionText}</div>
-        <div>{setResolutionInstructions}</div>
+        <br/>
+        <div>{mapResolutionNote}</div>
+        <br/>
+        <div>{mapResolutionClarification}</div>
       </div>
   );
 }
@@ -53,18 +59,24 @@ const styleOverviewText =
 const stylingSampleText =
   `Choose 'Show Sample' to superimpose a stlyed map tile for the current styling snapshot. The underlying full, interactable map has the same boundaries, zoom level and resolution as your final map - you can drag around this map to verify that it covers the area that you expect, or to change the center point of the styling sample tile, but we cannot show styling on this map itself.`;
 const mapTypeText =
-  `The most important step is to choose the map type: roadmap, satellite, hybrid (sattelite with road & location annotations), or terrain. Note that the Hybrid/Map toggle on the map itself just controls the interacterable map - the radio buttons on the right control your official specifications.`
+  `The most important step is to choose the map type: roadmap, satellite, hybrid (satellite with road & location annotations), or terrain. Note that the Hybrid/Map toggle on the map itself just controls the interacterable map - the radio buttons on the right control your official specifications.`
 const defaultStylingText = `To get started quickly, you can choose from a selection of pre-loaded styles. Custom styles can be added on top of this if desired. If you create a set of style specs that you like, you can save it - this makes it available for selection if you make another map.`
-const customStylingText = `We provide a UI for adding custom styles, but see developers.google.com/maps/documentation/maps-static/styling for details on what the stlying options mean.`
+const customStylingText1 = `We provide a UI for adding custom styles, but see `;
+const styleUrl = `https://developers.google.com/maps/documentation/maps-static/styling`;
+const customStylingText2 = ` for details on what the stlying options mean.`;
 const setStylingInstructions = () => {
   return (
       <div>
         <h3> Instructions: Style the Map</h3>
         <div>{styleOverviewText}</div>
+        <br/>
         <div>{stylingSampleText}</div>
+        <br/>
         <div>{mapTypeText}</div>
+        <br/>
         <div>{defaultStylingText}</div>
-        <div>{customStylingText}</div>
+        <br/>
+        <div>{customStylingText1}<a href={styleUrl}>the google style docs</a>{customStylingText2}</div>
       </div>
   );
 }

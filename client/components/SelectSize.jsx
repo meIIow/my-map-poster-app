@@ -27,6 +27,7 @@ const SelectSize = (props) => {
       <div>
         <button class="importantButton" onClick={() => props.expandInstructions()}>Instructions</button>
       </div>
+      <br/>
       <div>
         <div>
           <select name="units" id="unitSelect" onChange={(e) => props.updateUnitType(e.target.value)}>

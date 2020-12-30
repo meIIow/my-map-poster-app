@@ -523,6 +523,7 @@ class App extends Component {
       return (
         <div>
           <NextButton text='Show Sample' click={() => this.getSample()}/>
+          <br/>
           {hideSampleButton}
           <NextButton text='Get Poster' click={() => this.submit()}/>
         </div>

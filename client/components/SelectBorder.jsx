@@ -8,6 +8,7 @@ const SelectBorder = (props) => {
       <div>
         <button class="importantButton" onClick={() => props.expandInstructions()}>Instructions</button>
       </div>
+      <br/>
       <input id="pac-input" type="text" placeholder="Enter a location"></input>
       <input id="re-center" type="button" value="Re-Center Map"></input>
       <div>width:</div>

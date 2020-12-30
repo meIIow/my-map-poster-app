@@ -44,7 +44,7 @@ const buildDefaultRuleTree = (rules) => {
 }
 
 const createFeatureStyleTree= (tree, collapseFunc, toggleStyleChoice) => {
-  const classes = ((tree.COLLAPSE) ? "nested" : "active");
+  const classes = ((tree.COLLAPSE) ? "tree-ul nested" : "tree-ul active");
   return (
     <div class="tree-div">
       <ul class={classes}>
@@ -68,7 +68,7 @@ const createFeatureStyleTree= (tree, collapseFunc, toggleStyleChoice) => {
 }
 
 const createElementStyleTree = (tree, collapseFunc, toggleStyleChoice) => {
-  const classes = ((tree.COLLAPSE) ? "nested" : "active");
+  const classes = ((tree.COLLAPSE) ? "tree-ul nested" : "tree-ul active");
   return (
     <div class="tree-div">
       <ul class={classes}>

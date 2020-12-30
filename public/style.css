@@ -44,6 +44,7 @@
   left: 0;
   top: 0;
   margin: 0 auto;
+  padding: 20px;
   border-style: outset;
   border-width: 6px;
   border-color: Grey;
@@ -101,6 +102,7 @@
   border-style: solid;
   border-width: 3px;
   border-color: black;
+  background-color: black;
   /* TODO: hide overflow, don't resize */
   max-width: 85%;
   max-height: 85%;
@@ -140,7 +142,7 @@
   padding: 0;
 }
 
-ul {
+.tree-ul {
   list-style-type: none;
 }
 
