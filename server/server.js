@@ -11,8 +11,9 @@ const PosterImage = require('./map/PosterImage');
 const StaticMapHttpRequest = require('./request/StaticMapHttpRequest');
 const Tile = require('./map/Tile.js')
 
-// shhhh!!
-const apiKey = fs.readFileSync('./hidden/key.txt', 'utf8').split("\n").shift();
+// Plug in secret API key.
+let apiKey = process.env.MAPS_API_KEY;
+if (!apiKey) apiKey = fs.readFileSync('./hidden/key.txt', 'utf8').split("\n").shift();
 console.log('key is ' + apiKey);
 
 var server = require("http").createServer(app);
