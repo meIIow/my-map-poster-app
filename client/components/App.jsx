@@ -48,7 +48,7 @@ function getInitialState() {
     // Units / dimensions: magic number to keep dimension ratio.
     unitDimensionScale: .01,
     // Pixels per Unit.
-    resolution: 200,
+    resolution: 100,
     // Purely descriptive Unit - except Pixels, which forces resolution = 1.
     unit: 'Inches',
     // Nested style object to apply to poster.
@@ -140,12 +140,19 @@ class App extends Component {
 
   /* Calculates info on zoom, dimensions, geo range and tiles for given area. */
   getInfo() {
+    const height = Math.round(this.getUnits().y * this.state.resolution);
+    const width = Math.round(this.getUnits().x * this.state.resolution);
+
+    if (height > 1800 || width > 1800) {
+      return window.alert("My free-tier runtime memory is limited - max height and width is 1800 pixels");
+    }
+
     const url = '/border';
     const parcel = {
       northWestLatLng: this.state.boundsRaw.northWestLatLng,
       southEastLatLng: this.state.boundsRaw.southEastLatLng,
-      height: Math.round(this.getUnits().y * this.state.resolution),
-      width:  Math.round(this.getUnits().x * this.state.resolution),
+      height: height,
+      width:  width,
       lock: this.state.lock,
     }
 
@@ -181,6 +188,9 @@ class App extends Component {
       mapType: this.state.mapType,
     }
 
+    // Map generation can take some time - provide visual/functional queues that the user must wait
+    this.pauseApp('Please wait while your map is generated. For larger posters, this may take a few minutes...');
+
     fetch(url, {
       method: 'POST',
       headers: {
@@ -189,14 +199,15 @@ class App extends Component {
       },
       body: JSON.stringify(parcel),
     }).then(response => {
+      this.resumeApp();
       if (response.status >= 200 && response.status < 300) {
         console.log(response)
-
         return response.blob().then(data => {
           console.log(data);
           return Promise.resolve(data);
         })
       }
+      window.alert('Service is low on static map quota or RAM. Try again later or lower pixel dimensions.');
       return Promise.reject(response.statusText);
     }).then((data) => {
       console.log(data);
@@ -448,6 +459,38 @@ class App extends Component {
     mapBorder.style.resize = (this.state.phase === BORDER_PHASE) ? "both" : 'none';
     this.setMapBehavior();
     this.setMapDisplay(mapWrapper, mapBorder);
+  }
+
+  pauseApp(text) {
+    // Add the wait overlay with message
+    const overlay = document.createElement('div');
+    overlay.id = 'pause-app-overlay';
+
+    const message = document.createElement('p');
+    message.textContent = text;
+    message.style.color = 'white';
+    message.style.fontSize = '20px';
+
+    overlay.appendChild(message);
+    document.body.appendChild(overlay);
+
+    // Fade app and prevent interaction
+    const content = document.getElementById('content');
+    content.style.pointerEvents = "none";
+    content.style.opacity = "0.5";
+  }
+  
+  resumeApp() {
+    // Ensure there is no 'pause' overlay
+    const overlay = document.querySelector("#pause-app-overlay");
+    if (overlay) {
+      overlay.parentNode.removeChild(overlay);
+    }
+
+    // Allow full app interaction
+    const content = document.getElementById('content');
+    content.style.pointerEvents = "auto";
+    content.style.opacity = "1";
   }
 
   componentDidUpdate() {
