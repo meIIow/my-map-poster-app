@@ -34,7 +34,7 @@ The `/server` directory is a pretty typical Express app, focused mostly on conve
 ### How can I host my own instance?
 This is a simplified overview - hopefully at least enough so I can figure it out if I need to re-deploy.
 
-1.Create a new App Engine app in the same project as your API key. (No need if one exists already.)
+1. Create a new App Engine app in the same project as your API key. (No need if one exists already.)
 2. Pull down the code (`git clone`), and make sure your API key file is added appropriately (`./public/key.txt`). Then add an `./app.yaml` file with a line specifying the node runtime (`runtime: nodejs20`).
 3. Use the GCloud CLI to deploy your project. See https://github.com/GoogleCloudPlatform/nodejs-docs-samples/tree/main/appengine#deploying
 
